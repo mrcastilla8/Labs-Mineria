@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Bike_Sharing_Final"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "78cc95ea-0621-4ae8-8a93-e21fd28df013"
+  }
+}

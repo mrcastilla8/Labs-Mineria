@@ -1,0 +1,23 @@
+table DIM_WEATHER
+	lineageTag: bab128cc-9fa9-4218-bec0-4f9baea3c32d
+
+	column WEATHER_ID
+		dataType: int64
+		lineageTag: aa9f983b-7a1c-449d-9076-0ad1f6c0e182
+		summarizeBy: none
+		sourceColumn: WEATHER_ID
+
+	column WEATHER
+		dataType: string
+		lineageTag: 7c106f8b-5e56-49fb-8283-e062ef20b60e
+		summarizeBy: none
+		sourceColumn: WEATHER
+
+	partition DIM_WEATHER = m
+		mode: import
+		source =
+				let
+				            Source = Sql.Database("Renato\SQLEXPRESS", "DMT_BIKE_SHARING"),
+				            Object = Source{[Schema="dbo",Item="DIM_WEATHER"]}[Data]
+				        in
+				            Object

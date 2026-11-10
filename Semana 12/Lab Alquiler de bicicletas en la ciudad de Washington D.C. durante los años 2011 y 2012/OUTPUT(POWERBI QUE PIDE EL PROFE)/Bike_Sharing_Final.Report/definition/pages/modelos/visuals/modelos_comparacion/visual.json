@@ -1,0 +1,188 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "modelos_comparacion",
+  "position": {
+    "x": 20,
+    "y": 140,
+    "z": 0,
+    "height": 600,
+    "width": 1200,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "DATE_TIME"
+                }
+              },
+              "queryRef": "'vw_FACT_BIKE_SHARING'.DATE_TIME",
+              "nativeQueryRef": "DATE_TIME"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "Usuarios"
+                }
+              },
+              "queryRef": "vw_FACT_BIKE_SHARING.Usuarios",
+              "nativeQueryRef": "Usuarios"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DIM_FECHA"
+                    }
+                  },
+                  "Property": "TEST MODEL_EXOGENEAS_CatBoost"
+                }
+              },
+              "queryRef": "DIM_FECHA.TEST MODEL_EXOGENEAS_CatBoost",
+              "nativeQueryRef": "CatBoost",
+              "displayName": "CatBoost"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "ID_PREDICCION"
+                }
+              },
+              "queryRef": "vw_FACT_BIKE_SHARING.ID_PREDICCION",
+              "nativeQueryRef": "ID_PREDICCION"
+            }
+          ],
+          "fieldParameters": [
+            {
+              "parameterExpr": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Modelos"
+                    }
+                  },
+                  "Property": "Modelos"
+                }
+              },
+              "index": 2,
+              "length": 1
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vw_FACT_BIKE_SHARING"
+                  }
+                },
+                "Property": "DATE_TIME"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'import pandas as pd\nimport matplotlib.pyplot as plt\n\ndataset[\"DATE_TIME\"] = pd.to_datetime(dataset[\"DATE_TIME\"], errors=\"raise\")\ndataset = dataset.sort_values(\"DATE_TIME\")\nmodel_cols = [c for c in dataset.columns if c not in {\"DATE_TIME\", \"Usuarios\", \"ID_PREDICCION\"}]\nif len(model_cols) != 1:\n    raise ValueError(\"Se esperaba una predicción TEST seleccionada; columnas: {}\".format(model_cols))\nfig, ax = plt.subplots(figsize=(15, 6))\nax.plot(dataset[\"DATE_TIME\"], dataset[\"Usuarios\"], label=\"Real\")\nax.plot(dataset[\"DATE_TIME\"], dataset[model_cols[0]], label=\"Predicción seleccionada\")\nax.set(xlabel=\"Fecha y hora\", ylabel=\"Usuarios\")\nax.legend()\nplt.tight_layout()\nplt.show()'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Python'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Evaluación de Modelos predictivos'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "background": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 2,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

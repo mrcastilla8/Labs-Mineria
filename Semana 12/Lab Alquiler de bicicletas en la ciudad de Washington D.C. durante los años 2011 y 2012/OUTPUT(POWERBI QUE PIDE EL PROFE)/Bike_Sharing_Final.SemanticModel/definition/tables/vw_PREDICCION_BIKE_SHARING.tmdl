@@ -1,0 +1,47 @@
+table vw_PREDICCION_BIKE_SHARING
+	lineageTag: 1868f8cb-6388-4d12-959b-dfaccb7e5bc7
+
+	column ID_PREDICCION
+		dataType: string
+		lineageTag: e702bdba-dec6-44a4-9868-a8bd4f7e30fd
+		summarizeBy: none
+		sourceColumn: ID_PREDICCION
+
+	column MODEL_FORECASTER
+		dataType: double
+		lineageTag: d31e3be4-b792-433f-a85a-1ab3c8799024
+		summarizeBy: sum
+		sourceColumn: MODEL_FORECASTER
+
+	column MODEL_EXOGENEAS
+		dataType: double
+		lineageTag: cbd9483d-0009-4583-bef5-24d5e9aae649
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS
+
+	column MODEL_EXOGENEAS_CatBoost
+		dataType: double
+		lineageTag: 3b1f7a08-d5b1-48cc-ae22-d3d28785261a
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS_CatBoost
+
+	column MODEL_EXOGENEAS_LGBM
+		dataType: double
+		lineageTag: 633bb963-d949-4c28-8a42-29f69585856a
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS_LGBM
+
+	column MODEL_EXOGENEAS_LSTM
+		dataType: double
+		lineageTag: 4101600f-a5da-428b-82c9-4c2cf9e94dff
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS_LSTM
+
+	partition vw_PREDICCION_BIKE_SHARING = m
+		mode: import
+		source =
+				let
+				            Source = Sql.Database("Renato\SQLEXPRESS", "DMT_BIKE_SHARING"),
+				            Object = Source{[Schema="dbo",Item="vw_PREDICCION_BIKE_SHARING"]}[Data]
+				        in
+				            Object

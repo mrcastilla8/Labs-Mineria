@@ -1,0 +1,50 @@
+table Modelos
+	lineageTag: c68aa541-b9c4-4e34-ad7f-062077644a66
+
+	column Modelos
+		lineageTag: 62136b95-2629-47d1-8548-16767f068786
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Modelos Orden'
+
+		relatedColumnDetails
+			groupByColumn: 'Modelos Campos'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Modelos Campos'
+		isHidden
+		lineageTag: 6b4a1a4e-d44e-4eca-a301-66ecbaa157c8
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Modelos Orden'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Modelos Orden'
+		isHidden
+		formatString: 0
+		lineageTag: 25cbe5b5-2ed9-4043-a479-eb66b1fcfe7c
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Modelos = calculated
+		mode: import
+		source =
+				{
+				    ("Exógenas", NAMEOF('DIM_FECHA'[TEST MODEL_EXOGENEAS]), 0),
+				    ("CatBoost", NAMEOF('DIM_FECHA'[TEST MODEL_EXOGENEAS_CatBoost]), 1),
+				    ("LightGBM", NAMEOF('DIM_FECHA'[TEST MODEL_EXOGENEAS_LGBM]), 2),
+				    ("LSTM", NAMEOF('DIM_FECHA'[TEST MODEL_EXOGENEAS_LSTM]), 3),
+				    ("Forecaster", NAMEOF('DIM_FECHA'[TEST MODEL_FORECASTER]), 4)
+				}
+
+	annotation PBI_Id = 127c6423ded349a5b79c07ed3acfda59

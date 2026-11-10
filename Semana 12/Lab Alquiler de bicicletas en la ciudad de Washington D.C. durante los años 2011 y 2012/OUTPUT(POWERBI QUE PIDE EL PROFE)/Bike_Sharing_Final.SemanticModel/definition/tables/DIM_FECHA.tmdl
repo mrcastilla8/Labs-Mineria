@@ -1,0 +1,257 @@
+table DIM_FECHA
+	lineageTag: a8dd21de-b762-41aa-b470-c60f00c19300
+	dataCategory: Time
+
+	measure 'TEST MODEL_FORECASTER' = SUMX(FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"), RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_FORECASTER]))
+		lineageTag: df28a9e7-d940-417c-841d-5bff85522169
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TEST MODEL_EXOGENEAS' = SUMX(FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"), RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS]))
+		lineageTag: f3f3e246-9b52-4552-be4c-a6c82aa64471
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TEST MODEL_EXOGENEAS_CatBoost' = SUMX(FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"), RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_CatBoost]))
+		lineageTag: 1ab114b2-a457-40ed-8442-bdd7d6351dc9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TEST MODEL_EXOGENEAS_LGBM' = SUMX(FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"), RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_LGBM]))
+		lineageTag: 303a2105-62d0-44d3-b392-a9e942b3d04e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TEST MODEL_EXOGENEAS_LSTM' = SUMX(FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"), RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_LSTM]))
+		lineageTag: 05d0fbbf-b0ae-47d3-a832-ac0702b50250
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FECHA_ID
+		dataType: int64
+		lineageTag: 3609503f-6ae4-4a04-8f20-535f78b6106d
+		summarizeBy: none
+		sourceColumn: FECHA_ID
+
+	column FECHA
+		dataType: dateTime
+		isKey
+		formatString: Short Date
+		lineageTag: 5a0cac3d-a907-44d9-ae5f-463d58b732bb
+		summarizeBy: none
+		sourceColumn: FECHA
+
+		variation Variación
+			isDefault
+			relationship: 9e3c8e23-9f0b-4b2c-b4fb-3beaca7a9367
+			defaultHierarchy: LocalDateTable_8d358611-a45f-48d0-8c9d-be3004e1e3d6.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DIA_SEMANA
+		dataType: int64
+		lineageTag: d91c16e3-4615-4ad8-bf08-d5967aa114a9
+		summarizeBy: sum
+		sourceColumn: DIA_SEMANA
+
+		annotation SummarizationSetBy = Automatic
+
+	column NOMBRE_DIA_SEMANA
+		dataType: string
+		lineageTag: 20408458-eb63-444a-aace-a4201ee87ef9
+		summarizeBy: none
+		sourceColumn: NOMBRE_DIA_SEMANA
+
+	column DIA_MES
+		dataType: int64
+		lineageTag: b1618a28-550a-409f-9947-c6db35caf91b
+		summarizeBy: sum
+		sourceColumn: DIA_MES
+
+		annotation SummarizationSetBy = Automatic
+
+	column DIA_ANIO
+		dataType: int64
+		lineageTag: c31eed64-248b-4434-a7db-1dd2b8d50cee
+		summarizeBy: sum
+		sourceColumn: DIA_ANIO
+
+		annotation SummarizationSetBy = Automatic
+
+	column NOMBRE_MES
+		dataType: string
+		lineageTag: 75b384ee-7fe1-4d0e-9f65-3610f2aa632b
+		summarizeBy: none
+		sourceColumn: NOMBRE_MES
+		sortByColumn: MES_ANIO
+
+	column MES_ANIO
+		dataType: int64
+		lineageTag: 9025ec83-b3f9-4982-9835-9d7e26328227
+		summarizeBy: sum
+		sourceColumn: MES_ANIO
+
+		annotation SummarizationSetBy = Automatic
+
+	column SEMANA_ANIO
+		dataType: int64
+		lineageTag: ee0dd035-1cd2-4e22-ab62-292df18cdce4
+		summarizeBy: sum
+		sourceColumn: SEMANA_ANIO
+
+		annotation SummarizationSetBy = Automatic
+
+	column ANIO
+		dataType: int64
+		lineageTag: ccd8658c-4d24-4ac5-85bf-c771c7100c68
+		summarizeBy: sum
+		sourceColumn: ANIO
+
+		annotation SummarizationSetBy = Automatic
+
+	column BIMESTRE
+		dataType: int64
+		lineageTag: aba7fd89-140d-4056-a23a-21bb48ac1386
+		summarizeBy: sum
+		sourceColumn: BIMESTRE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TRIMESTRE
+		dataType: int64
+		lineageTag: 7e3ceb1b-3c05-4ac2-a691-34b551b96028
+		summarizeBy: sum
+		sourceColumn: TRIMESTRE
+
+		annotation SummarizationSetBy = Automatic
+
+	column CUATRIMESTRE
+		dataType: int64
+		lineageTag: 186760ed-a912-4584-82ba-b5aadda54b56
+		summarizeBy: sum
+		sourceColumn: CUATRIMESTRE
+
+		annotation SummarizationSetBy = Automatic
+
+	column SEMESTRE
+		dataType: int64
+		lineageTag: e4e4f4bb-6946-4d9f-9e57-259f6440562d
+		summarizeBy: sum
+		sourceColumn: SEMESTRE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_NORTE_FECHA
+		dataType: int64
+		lineageTag: a71bd7e4-a57d-491b-bfc8-19c68e437e1e
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_NORTE_FECHA
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_NORTE_SEMANA
+		dataType: int64
+		lineageTag: 7101be84-9267-4a1d-aa4b-0801024139c1
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_NORTE_SEMANA
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_NORTE_ANIO
+		dataType: int64
+		lineageTag: 4a47f072-2e62-4e3b-b9a0-a038eb3cff2b
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_NORTE_ANIO
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_PESCA_NORTE
+		dataType: int64
+		lineageTag: baf514cf-15f3-48df-8364-460e99d8df42
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_PESCA_NORTE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_SUR_FECHA
+		dataType: int64
+		lineageTag: c89d04f6-eaa2-4565-a9b9-00a15c34a307
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_SUR_FECHA
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_SUR_SEMANA
+		dataType: int64
+		lineageTag: 5b8f6f10-de5f-4fd7-8393-7b10c95e26dc
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_SUR_SEMANA
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_SUR_ANIO
+		dataType: int64
+		lineageTag: 9cdaf85c-c3f3-4dcc-b531-e04f9aea84da
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_SUR_ANIO
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_PESCA_SUR
+		dataType: int64
+		lineageTag: 8a1749b7-b4a9-4b52-978b-322db73b1f4e
+		summarizeBy: sum
+		sourceColumn: TEMPORADA_PESCA_SUR
+
+		annotation SummarizationSetBy = Automatic
+
+	column DIA_SEMANA_CALIDAD
+		dataType: int64
+		lineageTag: ce418e0c-7f99-4d41-8d32-0ffc4baae39b
+		summarizeBy: sum
+		sourceColumn: DIA_SEMANA_CALIDAD
+
+		annotation SummarizationSetBy = Automatic
+
+	column SEMANA_PESQUERA
+		dataType: int64
+		lineageTag: 3c106342-c55c-4ad3-8a82-82cbbf06a3b6
+		summarizeBy: sum
+		sourceColumn: SEMANA_PESQUERA
+
+		annotation SummarizationSetBy = Automatic
+
+	column TEMPORADA_DESCRIPCION
+		dataType: string
+		lineageTag: 98502e9b-b66b-4fe4-b1cb-490c0b488c2b
+		summarizeBy: none
+		sourceColumn: TEMPORADA_DESCRIPCION
+
+	column DIA_OPERACION
+		dataType: int64
+		lineageTag: 8e47c1a0-71f6-461a-89fe-6ab7f6d9981e
+		summarizeBy: sum
+		sourceColumn: DIA_OPERACION
+
+		annotation SummarizationSetBy = Automatic
+
+	column FERIADO
+		dataType: string
+		lineageTag: cce8888b-1fc5-4806-80f6-15f06afd488f
+		summarizeBy: none
+		sourceColumn: FERIADO
+
+	column ESTACION
+		dataType: string
+		lineageTag: 2dcfe4ea-2004-4c53-879d-d53188df4e11
+		summarizeBy: none
+		sourceColumn: ESTACION
+
+	partition DIM_FECHA = m
+		mode: import
+		source =
+				let
+				            Source = Sql.Database("Renato\SQLEXPRESS", "DMT_BIKE_SHARING"),
+				            Object = Source{[Schema="dbo",Item="DIM_FECHA"]}[Data]
+				        in
+				            Object

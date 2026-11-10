@@ -1,0 +1,29 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["DIM_FECHA","DIM_HORA","DIM_WEATHER","vw_FACT_BIKE_SHARING","vw_PREDICCION_BIKE_SHARING","vw_FORECASTING_BIKE_SHARING"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table DIM_FECHA
+ref table DIM_HORA
+ref table DIM_WEATHER
+ref table vw_FACT_BIKE_SHARING
+ref table vw_PREDICCION_BIKE_SHARING
+ref table vw_FORECASTING_BIKE_SHARING
+ref table DateTableTemplate_23843ff5-5b20-48bd-bbc3-f48da3892d2f
+ref table LocalDateTable_8d358611-a45f-48d0-8c9d-be3004e1e3d6
+ref table LocalDateTable_938d53ed-a848-455f-8613-03a0869b1145
+ref table LocalDateTable_3974d847-ee8f-467a-a99b-a8107602ee59
+
+ref table Modelos
+ref table Forecasting
+
+ref cultureInfo en-US

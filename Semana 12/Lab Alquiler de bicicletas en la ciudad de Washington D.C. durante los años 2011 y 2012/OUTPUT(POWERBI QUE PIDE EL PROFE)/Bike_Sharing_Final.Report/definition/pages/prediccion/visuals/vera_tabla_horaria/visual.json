@@ -1,0 +1,147 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "vera_tabla_horaria",
+  "position": {
+    "x": 866,
+    "y": 172,
+    "z": 5,
+    "height": 524,
+    "width": 390,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FORECASTING_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "DATE_TIME"
+                }
+              },
+              "queryRef": "vw_FORECASTING_BIKE_SHARING.DATE_TIME",
+              "nativeQueryRef": "Fecha y hora",
+              "displayName": "Fecha y hora"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FORECASTING_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "MODEL_EXOGENEAS"
+                }
+              },
+              "queryRef": "vw_FORECASTING_BIKE_SHARING.MODEL_EXOGENEAS",
+              "nativeQueryRef": "Exógenas",
+              "displayName": "Exógenas"
+            }
+          ],
+          "fieldParameters": [
+            {
+              "parameterExpr": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecasting"
+                    }
+                  },
+                  "Property": "Forecasting"
+                }
+              },
+              "index": 1,
+              "length": 1
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vw_FORECASTING_BIKE_SHARING"
+                  }
+                },
+                "Property": "DATE_TIME"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Detalle horario'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stylePreset": [
+        {
+          "properties": {
+            "name": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Minimal'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "c5e9ab3969ada6d99cbc",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vw_FORECASTING_BIKE_SHARING"
+              }
+            },
+            "Property": "DATE_TIME"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "dae93d73c9db39830617",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vw_FORECASTING_BIKE_SHARING"
+              }
+            },
+            "Property": "MODEL_EXOGENEAS"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

@@ -1,0 +1,237 @@
+table vw_FACT_BIKE_SHARING
+	lineageTag: 3a68bd3c-ec0c-4774-9c51-d3a777cec8e6
+
+	measure Usuarios = SUM('vw_FACT_BIKE_SHARING'[USERS])
+		formatString: #,0
+		lineageTag: c182c622-c57f-40aa-bee9-ae2b070e26f2
+
+	measure 'Total registros' = COUNTROWS('vw_FACT_BIKE_SHARING')
+		formatString: #,0
+		lineageTag: 7f0bec0e-3aa5-46f1-8199-35546647bee4
+
+	measure 'Promedio de alquileres por hora' = AVERAGE('vw_FACT_BIKE_SHARING'[USERS])
+		formatString: #,0
+		lineageTag: a0fa03e2-4082-423e-836d-58b1f4c35ed6
+
+	measure 'Usuarios mes' = TOTALMTD([Usuarios], 'DIM_FECHA'[FECHA])
+		formatString: #,0
+		lineageTag: 9fba74ee-dcbb-4fed-8acc-9ce00783d217
+
+	measure 'Usuarios acumulados año' = TOTALYTD([Usuarios], 'DIM_FECHA'[FECHA])
+		formatString: #,0
+		lineageTag: 6a079ef6-a2c9-47bb-96f3-76a12b965d26
+
+	measure 'Usuarios mes anterior' = CALCULATE([Usuarios mes], PREVIOUSMONTH('DIM_FECHA'[FECHA]))
+		formatString: #,0
+		lineageTag: 3913ba4c-8799-4bfb-a8c6-162f4e4c32f4
+
+	measure 'Variación mensual %' = DIVIDE([Usuarios mes] - [Usuarios mes anterior], [Usuarios mes anterior])
+		formatString: #,0
+		lineageTag: e1a20db0-1087-499b-9c73-aa52d8120621
+
+	measure 'MAE Forecaster' =
+			AVERAGEX(
+			    FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"),
+			    ABS('vw_FACT_BIKE_SHARING'[USERS] - RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_FORECASTER]))
+			)
+			formatString: #,0.00
+			lineageTag: df44f3df-fb12-4d53-a99a-5081c1a3f7d6
+		lineageTag: 1f980d7e-b4d9-427f-af82-3d473a57efbc
+
+	measure 'MAE Exogenas' =
+			AVERAGEX(
+			    FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"),
+			    ABS('vw_FACT_BIKE_SHARING'[USERS] - RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS]))
+			)
+			formatString: #,0.00
+			lineageTag: b1cdb75b-79dc-4e8c-8a78-797269974711
+		lineageTag: 7f891e7f-a547-4b61-8cec-2b240625ad85
+
+	measure 'MAE CatBoost' =
+			AVERAGEX(
+			    FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"),
+			    ABS('vw_FACT_BIKE_SHARING'[USERS] - RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_CatBoost]))
+			)
+			formatString: #,0.00
+			lineageTag: 960e3a90-b5b4-456f-bf10-8d68012dfe56
+		lineageTag: c8ef27e1-241c-4df6-a308-b0e2575a1b06
+
+	measure 'MAE LightGBM' =
+			AVERAGEX(
+			    FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"),
+			    ABS('vw_FACT_BIKE_SHARING'[USERS] - RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_LGBM]))
+			)
+			formatString: #,0.00
+			lineageTag: 8366bd10-77b1-40e1-96b6-c3cad46b2628
+		lineageTag: 89f95c2c-16ce-4a69-aa38-30d21515d5a3
+
+	measure 'MAE LSTM' =
+			AVERAGEX(
+			    FILTER('vw_FACT_BIKE_SHARING', 'vw_FACT_BIKE_SHARING'[TIPO_CONJUNTO] = "TEST"),
+			    ABS('vw_FACT_BIKE_SHARING'[USERS] - RELATED('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_LSTM]))
+			)
+			formatString: #,0.00
+			lineageTag: 8179b8a6-a93b-48c5-9032-e0d1ad9fef1f
+		lineageTag: 632f7f6e-7cb9-4f94-be82-3fc7a3dd51c8
+
+	measure 'Predicción Forecaster' = AVERAGE('vw_PREDICCION_BIKE_SHARING'[MODEL_FORECASTER])
+		formatString: #,0.00
+		lineageTag: 3fb35bd9-e7cb-42bc-9c03-fda12ab45232
+
+	measure 'Predicción Exógenas' = AVERAGE('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS])
+		formatString: #,0.00
+		lineageTag: 19e0e2db-d9f5-42bb-b943-5c3420ecec6f
+
+	measure 'Predicción CatBoost' = AVERAGE('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_CatBoost])
+		formatString: #,0.00
+		lineageTag: 26007408-d7e3-4038-8fac-facc4c175822
+
+	measure 'Predicción LightGBM' = AVERAGE('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_LGBM])
+		formatString: #,0.00
+		lineageTag: 3bcfa35b-67b7-4c58-a378-c37446a61eec
+
+	measure 'Predicción LSTM' = AVERAGE('vw_PREDICCION_BIKE_SHARING'[MODEL_EXOGENEAS_LSTM])
+		formatString: #,0.00
+		lineageTag: 37336a61-5cdc-4ca5-8764-2884919933e2
+
+	measure '.DIA' = MAX('DIM_FECHA'[DIA_MES])
+		formatString: #,0
+		displayFolder: Ejercicio 1
+		lineageTag: 43cbbe78-4b4f-473d-97d8-72148a2d5bc7
+
+	measure '.sum_users' = SUM('vw_FACT_BIKE_SHARING'[USERS])
+		formatString: #,0
+		displayFolder: Ejercicio 1
+		lineageTag: 10c41325-9542-4e43-9d0c-5f7688c3f3b6
+
+	measure '.user_moth' = TOTALMTD([.sum_users], 'DIM_FECHA'[FECHA])
+		formatString: #,0
+		displayFolder: Ejercicio 1
+		lineageTag: 91880cea-60ae-4748-8d31-9917de9abbc8
+
+	measure '.users_total_year' = TOTALYTD([.sum_users], 'DIM_FECHA'[FECHA])
+		formatString: #,0
+		displayFolder: Ejercicio 1
+		lineageTag: 995161fc-e5ff-4913-a3b3-e353780e1d79
+
+	measure '.users_prev_month' = TOTALMTD([.user_moth], PREVIOUSMONTH('DIM_FECHA'[FECHA]))
+		formatString: #,0
+		displayFolder: Ejercicio 1
+		lineageTag: 901c278f-bf8e-4b31-9b48-8fcc72ba0f13
+
+	measure '.users_prev_year' = TOTALMTD([.users_total_year], PREVIOUSYEAR('DIM_FECHA'[FECHA]))
+		formatString: #,0
+		displayFolder: Ejercicio 1
+		lineageTag: c5780465-1ccc-41e9-9d7f-2c0d73d13028
+
+	measure '.%var_users_yearr' = DIVIDE([.users_total_year] - [.users_prev_year], [.users_prev_year])
+		formatString: 0.00%
+		displayFolder: Ejercicio 1
+		lineageTag: 58e46fc3-46de-40eb-8a33-250656efa4a4
+
+	measure '.%var_users_month' = DIVIDE([.user_moth] - [.users_prev_month], [.users_prev_month])
+		formatString: 0.00%
+		displayFolder: Ejercicio 1
+		lineageTag: d064bb02-5c62-499c-9728-6f9df28c9115
+
+	measure '.promedio_movil' = DIVIDE([.user_moth], [.DIA])
+		formatString: #,0.00
+		displayFolder: Ejercicio 1
+		lineageTag: e8679835-4bcc-4e04-ad9b-2af9b6ca4c6c
+
+	column FECHA_ID
+		dataType: int64
+		lineageTag: 6ac7c67c-0e61-41f6-a7c7-6847d5c86853
+		summarizeBy: none
+		sourceColumn: FECHA_ID
+
+	column HORA_ID
+		dataType: int64
+		lineageTag: 56066ec5-574e-4cf4-874c-457b7da2e0ea
+		summarizeBy: none
+		sourceColumn: HORA_ID
+
+	column HOLIDAY
+		dataType: int64
+		lineageTag: dbff634d-6760-41bf-9b9a-94d1e0bac7f8
+		summarizeBy: sum
+		sourceColumn: HOLIDAY
+
+		annotation SummarizationSetBy = Automatic
+
+	column WORKINGDAY
+		dataType: int64
+		lineageTag: e98fc2e1-f97c-400a-9510-00190af00e05
+		summarizeBy: sum
+		sourceColumn: WORKINGDAY
+
+		annotation SummarizationSetBy = Automatic
+
+	column WEATHER_ID
+		dataType: int64
+		lineageTag: b12bc039-49fd-4568-b033-7230bcb51125
+		summarizeBy: none
+		sourceColumn: WEATHER_ID
+
+	column TEMP
+		dataType: double
+		lineageTag: a665e981-2275-4434-9baa-952e6bd2e193
+		summarizeBy: sum
+		sourceColumn: TEMP
+
+	column ATEMP
+		dataType: double
+		lineageTag: 0630239b-883c-4f8c-b13f-c09b5495c427
+		summarizeBy: sum
+		sourceColumn: ATEMP
+
+	column HUM
+		dataType: double
+		lineageTag: 8ca050fa-4833-400f-8cd2-32493d452772
+		summarizeBy: sum
+		sourceColumn: HUM
+
+	column WINDSPEED
+		dataType: double
+		lineageTag: fb34527c-09c5-4ed4-afc7-bf8a02108beb
+		summarizeBy: sum
+		sourceColumn: WINDSPEED
+
+	column USERS
+		dataType: int64
+		lineageTag: 3f9d3e34-61ca-457c-808d-84f83862ff59
+		summarizeBy: sum
+		sourceColumn: USERS
+
+	column TIPO_CONJUNTO
+		dataType: string
+		lineageTag: f0c17f74-6cf1-435f-b6b0-3657f554ef03
+		summarizeBy: none
+		sourceColumn: TIPO_CONJUNTO
+
+	column ID_PREDICCION
+		dataType: string
+		lineageTag: 8bc39f46-5ba9-4bcd-b243-3437f7ed4c08
+		summarizeBy: none
+		sourceColumn: ID_PREDICCION
+
+	column DATE_TIME
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a5c77e82-dba7-4b3d-b5f5-153d8d87b0d9
+		summarizeBy: none
+		sourceColumn: DATE_TIME
+
+		variation Variación
+			isDefault
+			relationship: df607620-4a88-4efe-a816-fb8ab5638e76
+			defaultHierarchy: LocalDateTable_938d53ed-a848-455f-8613-03a0869b1145.'Date Hierarchy'
+
+	partition vw_FACT_BIKE_SHARING = m
+		mode: import
+		source =
+				let
+				            Source = Sql.Database("Renato\SQLEXPRESS", "DMT_BIKE_SHARING"),
+				            Object = Source{[Schema="dbo",Item="vw_FACT_BIKE_SHARING"]}[Data]
+				        in
+				            Object
