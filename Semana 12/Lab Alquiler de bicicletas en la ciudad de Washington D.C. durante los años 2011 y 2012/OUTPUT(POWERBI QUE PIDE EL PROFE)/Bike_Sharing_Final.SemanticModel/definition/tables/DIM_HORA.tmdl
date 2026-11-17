@@ -1,0 +1,40 @@
+table DIM_HORA
+	lineageTag: 246c4d6e-7bc8-4d37-8273-8b95caf57875
+
+	column HORA_ID
+		dataType: int64
+		lineageTag: e4c7b740-35fc-4513-8408-3ebd8e1c92cc
+		summarizeBy: none
+		sourceColumn: HORA_ID
+
+	column HORA
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 0c7007a4-2032-4650-87e2-a80991b1ed60
+		summarizeBy: none
+		sourceColumn: HORA
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column PREIODO
+		dataType: string
+		lineageTag: f5b006b3-fb51-445a-9f47-c8d5e433695c
+		summarizeBy: none
+		sourceColumn: PREIODO
+
+	column HORA_INT
+		dataType: int64
+		lineageTag: d61584b1-658f-4cdc-97f8-12fca3d2f4e1
+		summarizeBy: none
+		sourceColumn: HORA_INT
+
+	partition DIM_HORA = m
+		mode: import
+		source =
+				let
+				            Source = Sql.Database("Renato\SQLEXPRESS", "DMT_BIKE_SHARING"),
+				            Object = Source{[Schema="dbo",Item="DIM_HORA"]}[Data]
+				        in
+				            Object
+
+	annotation PBI_ResultType = Table

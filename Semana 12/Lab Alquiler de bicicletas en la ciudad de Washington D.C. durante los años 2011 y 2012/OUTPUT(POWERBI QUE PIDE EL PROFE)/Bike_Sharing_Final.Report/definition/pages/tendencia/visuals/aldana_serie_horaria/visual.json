@@ -1,0 +1,150 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "aldana_serie_horaria",
+  "position": {
+    "x": 24,
+    "y": 416,
+    "width": 1232,
+    "height": 256,
+    "z": 4000,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "DATE_TIME"
+                }
+              },
+              "queryRef": "vw_FACT_BIKE_SHARING.DATE_TIME",
+              "nativeQueryRef": "DATE_TIME"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "USERS"
+                }
+              },
+              "queryRef": "vw_FACT_BIKE_SHARING.USERS",
+              "nativeQueryRef": "USERS"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vw_FACT_BIKE_SHARING"
+                  }
+                },
+                "Property": "DATE_TIME"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'import pandas as pd\nimport matplotlib.pyplot as plt\nfrom matplotlib.dates import AutoDateLocator, ConciseDateFormatter\n\nrequired = {\"DATE_TIME\", \"USERS\"}\nif not required.issubset(dataset.columns):\n    raise ValueError(\"Faltan campos: {}\".format(sorted(required - set(dataset.columns))))\ndata = dataset.copy()\ndata[\"DATE_TIME\"] = pd.to_datetime(data[\"DATE_TIME\"], errors=\"raise\").dt.round(\"s\")\ndata[\"USERS\"] = pd.to_numeric(data[\"USERS\"], errors=\"raise\")\nif data[\"DATE_TIME\"].isna().any() or data[\"DATE_TIME\"].duplicated().any():\n    raise ValueError(\"DATE_TIME debe identificar una sola observación por hora.\")\nif not data[\"USERS\"].between(0, float(\"inf\"), inclusive=\"left\").all():\n    raise ValueError(\"USERS contiene valores nulos, negativos o no finitos.\")\ndata = data.sort_values(\"DATE_TIME\")\n# asfreq muestra huecos como NaN; no inventa ni interpola observaciones.\nseries = data.set_index(\"DATE_TIME\")[\"USERS\"].asfreq(\"h\") if not data.empty else None\n\nplt.rcParams.update({\"font.family\": \"DejaVu Sans\", \"font.size\": 9})\nfig, ax = plt.subplots(figsize=(12, 2.55))\nif data.empty:\n    ax.set_axis_off()\n    ax.text(0.5, 0.5, \"Sin datos para el conjunto seleccionado\", ha=\"center\", va=\"center\",\n            transform=ax.transAxes, color=\"#173C66\")\nelse:\n    ax.plot(series.index, series, color=\"#1764AB\", linewidth=0.55, label=\"USERS\")\n    locator = AutoDateLocator(minticks=5, maxticks=10)\n    ax.xaxis.set_major_locator(locator)\n    ax.xaxis.set_major_formatter(ConciseDateFormatter(locator))\n    ax.set(title=\"Número de usuarios\", xlabel=\"Fecha y hora\", ylabel=\"Número de usuarios\")\n    ax.set_ylim(bottom=0)\n    ax.margins(x=0)\n    ax.grid(axis=\"y\", color=\"#DCE4ED\", linewidth=0.6)\n    ax.spines[[\"top\", \"right\"]].set_visible(False)\n    ax.legend(loc=\"upper left\", frameon=False, fontsize=8)\n    ax.set_title(\"Número de usuarios\", color=\"#173C66\", pad=10)\nfig.tight_layout(pad=1.1)\nplt.show()\n'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Python'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

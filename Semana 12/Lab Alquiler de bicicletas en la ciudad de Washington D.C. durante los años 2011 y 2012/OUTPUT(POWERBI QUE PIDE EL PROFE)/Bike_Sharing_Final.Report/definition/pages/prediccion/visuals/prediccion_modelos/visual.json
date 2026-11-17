@@ -1,0 +1,170 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "prediccion_modelos",
+  "position": {
+    "x": 24,
+    "y": 172,
+    "z": 4,
+    "height": 524,
+    "width": 822,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FORECASTING_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "DATE_TIME"
+                }
+              },
+              "queryRef": "vw_FORECASTING_BIKE_SHARING.DATE_TIME",
+              "nativeQueryRef": "DATE_TIME"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FORECASTING_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "MODEL_EXOGENEAS"
+                }
+              },
+              "queryRef": "vw_FORECASTING_BIKE_SHARING.MODEL_EXOGENEAS",
+              "nativeQueryRef": "Exógenas",
+              "displayName": "Exógenas"
+            }
+          ],
+          "fieldParameters": [
+            {
+              "parameterExpr": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecasting"
+                    }
+                  },
+                  "Property": "Forecasting"
+                }
+              },
+              "index": 1,
+              "length": 1
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vw_FORECASTING_BIKE_SHARING"
+                  }
+                },
+                "Property": "DATE_TIME"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'import pandas as pd\nimport matplotlib.pyplot as plt\nfrom matplotlib.dates import AutoDateLocator, ConciseDateFormatter\n\nlabels = {\n    \"MODEL_FORECASTER\": \"Forecaster\",\n    \"MODEL_EXOGENEAS\": \"Exógenas\",\n    \"MODEL_EXOGENEAS_LGBM\": \"LightGBM\",\n    \"MODEL_EXOGENEAS_CatBoost\": \"CatBoost\",\n}\n\nfig, ax = plt.subplots(figsize=(11, 6), layout=\"constrained\")\nmodels = [name for name in dataset.columns if name != \"DATE_TIME\"]\nif dataset.empty or len(models) != 1:\n    ax.set_axis_off()\n    message = \"Sin pronóstico para el período seleccionado\" if dataset.empty else \"Selecciona un modelo en Forecasting\"\n    ax.text(0.5, 0.5, message, ha=\"center\", va=\"center\", color=\"#173C66\", transform=ax.transAxes)\nelse:\n    model = models[0]\n    dates = pd.to_datetime(dataset[\"DATE_TIME\"], errors=\"raise\")\n    values = pd.to_numeric(dataset[model], errors=\"raise\")\n    series = pd.Series(values.to_numpy(), index=dates).sort_index()\n    ax.plot(series.index, series, color=\"#1764AB\", linewidth=0.9, label=labels.get(model, model))\n    locator = AutoDateLocator(minticks=4, maxticks=8)\n    ax.xaxis.set_major_locator(locator)\n    ax.xaxis.set_major_formatter(ConciseDateFormatter(locator))\n    ax.set(xlabel=\"Fecha y hora\", ylabel=\"Alquileres pronosticados\")\n    ax.grid(axis=\"y\", alpha=0.23)\n    ax.spines[[\"top\", \"right\"]].set_visible(False)\n    ax.legend(loc=\"upper right\", frameon=False)\nplt.show()'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Python'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Evaluación de Modelos predictivos'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "background": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1764AB'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a9c1f212d2de02b65b0b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vw_FORECASTING_BIKE_SHARING"
+              }
+            },
+            "Property": "DATE_TIME"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

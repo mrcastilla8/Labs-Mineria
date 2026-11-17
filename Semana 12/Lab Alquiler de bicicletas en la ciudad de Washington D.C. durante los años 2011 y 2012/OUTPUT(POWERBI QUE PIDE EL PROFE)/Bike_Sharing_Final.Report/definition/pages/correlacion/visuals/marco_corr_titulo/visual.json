@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "marco_corr_titulo",
+  "position": {
+    "x": 24,
+    "y": 13,
+    "z": 12,
+    "width": 725,
+    "height": 42,
+    "tabOrder": 12
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "EJERCICIO 4  |  CORRELACIÓN",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "26pt",
+                      "color": "#153B60",
+                      "bold": true
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

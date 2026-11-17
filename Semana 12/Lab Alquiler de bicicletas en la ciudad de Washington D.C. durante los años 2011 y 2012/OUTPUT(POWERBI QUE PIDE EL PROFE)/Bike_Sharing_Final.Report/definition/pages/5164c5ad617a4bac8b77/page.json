@@ -1,0 +1,90 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "5164c5ad617a4bac8b77",
+  "displayName": "Corporativo",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "0a95b5385f7a44b19778",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DIM_FECHA"
+              }
+            },
+            "Property": "ANIO"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "d",
+              "Entity": "DIM_FECHA",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "d"
+                          }
+                        },
+                        "Property": "ANIO"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "2011L"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "2012L"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "9190a08c708d472eb8a8",
+      "target": "5164c5ad617a4bac8b77_1",
+      "type": "NoFilter"
+    },
+    {
+      "source": "9190a08c708d472eb8a8",
+      "target": "5164c5ad617a4bac8b77_2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "9190a08c708d472eb8a8",
+      "target": "5164c5ad617a4bac8b77_3",
+      "type": "NoFilter"
+    }
+  ]
+}

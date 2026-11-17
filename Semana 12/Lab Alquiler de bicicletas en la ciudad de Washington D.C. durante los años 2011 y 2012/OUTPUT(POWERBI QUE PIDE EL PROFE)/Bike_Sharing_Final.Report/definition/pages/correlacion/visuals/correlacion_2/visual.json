@@ -1,0 +1,189 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "correlacion_2",
+  "position": {
+    "x": 648,
+    "y": 155,
+    "z": 11,
+    "width": 610,
+    "height": 452,
+    "tabOrder": 11
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "DATE_TIME"
+                }
+              },
+              "queryRef": "'vw_FACT_BIKE_SHARING'.DATE_TIME",
+              "nativeQueryRef": "DATE_TIME"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "USERS"
+                }
+              },
+              "queryRef": "'vw_FACT_BIKE_SHARING'.USERS",
+              "nativeQueryRef": "USERS"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'\"\"\"Visual Python PACF para Power BI; campos requeridos: DATE_TIME y USERS.\"\"\"\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nfrom statsmodels.graphics.tsaplots import plot_pacf\n\n\ndef prepare_series(dataset):\n    required = {\"DATE_TIME\", \"USERS\"}\n    missing = required.difference(dataset.columns)\n    if missing:\n        raise ValueError(f\"Faltan columnas requeridas: {sorted(missing)}\")\n    frame = dataset[[\"DATE_TIME\", \"USERS\"]].copy()\n    frame[\"DATE_TIME\"] = pd.to_datetime(frame[\"DATE_TIME\"], errors=\"raise\")\n    frame[\"USERS\"] = pd.to_numeric(frame[\"USERS\"], errors=\"raise\")\n    if frame[\"DATE_TIME\"].duplicated().any():\n        raise ValueError(\"DATE_TIME duplicado; la serie debe conservar granularidad horaria.\")\n    if frame[\"USERS\"].isna().any() or not np.isfinite(frame[\"USERS\"].to_numpy(dtype=float)).all():\n        raise ValueError(\"USERS contiene nulos o valores no finitos.\")\n    series = frame.set_index(\"DATE_TIME\")[\"USERS\"].sort_index().asfreq(\"h\")\n    if series.isna().any():\n        raise ValueError(\"Hay horas faltantes en la serie filtrada; PACF no interpola ni rellena datos.\")\n    if len(series) < 3:\n        raise ValueError(\"Se necesitan al menos tres observaciones para PACF.\")\n    return series\n\n\ndef render(dataset):\n    series = prepare_series(dataset)\n    # Mantiene los 72 rezagos del profesor cuando la muestra lo permite.\n    lags = min(72, (len(series) - 1) // 2)\n    fig, ax = plt.subplots(figsize=(10.4, 5.2), dpi=125)\n    fig.patch.set_facecolor(\"#FFFFFF\")\n    ax.set_facecolor(\"#FFFFFF\")\n    plot_pacf(series, ax=ax, lags=lags, alpha=0.05, method=\"ywm\",\n                 vlines_kwargs={\"colors\": \"#1689EF\", \"linewidth\": 1.5})\n    ax.set_title(\"PACF  |  Correlación parcial\", fontsize=13, fontweight=\"bold\", loc=\"left\", color=\"#153B60\", pad=18)\n    ax.set_xlabel(\"Rezago (horas)\", fontsize=10, color=\"#526B83\")\n    ax.set_ylabel(\"Autocorrelación parcial\", fontsize=10, color=\"#526B83\")\n    ax.grid(axis=\"y\", color=\"#E6EFF8\", linewidth=0.7)\n    ax.set_axisbelow(True)\n    ax.spines[\"top\"].set_visible(False)\n    ax.spines[\"right\"].set_visible(False)\n    ax.spines[\"left\"].set_color(\"#D6E4F0\")\n    ax.spines[\"bottom\"].set_color(\"#D6E4F0\")\n    ax.tick_params(axis=\"both\", labelsize=9, colors=\"#526B83\")\n    ax.set_xlim(left=-1, right=lags + 1)\n    fig.tight_layout()\n    return fig\n\n\nif \"dataset\" in globals():\n    fig = render(dataset)\nplt.show()\n'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Python'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'PACF · Relación directa por rezago'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#153B60'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#DDE9F5'"
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

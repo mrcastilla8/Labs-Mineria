@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "marco_corr_nota",
+  "position": {
+    "x": 24,
+    "y": 675,
+    "z": 16,
+    "width": 1228,
+    "height": 27,
+    "tabOrder": 16
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Serie: USERS por DATE_TIME · datos horarios reales · hasta 72 rezagos · método PACF: ywm · intervalos de confianza: 95 %",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "10pt",
+                      "color": "#6D859D",
+                      "bold": false
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

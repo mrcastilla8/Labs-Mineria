@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "marco_corr_pie",
+  "position": {
+    "x": 24,
+    "y": 626,
+    "z": 15,
+    "width": 1234,
+    "height": 34,
+    "tabOrder": 15
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "INTERPRETACIÓN  ·  Los picos en rezagos recurrentes permiten explorar patrones horarios y semanales; las bandas reflejan incertidumbre estadística.",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "11pt",
+                      "color": "#173753",
+                      "bold": false
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

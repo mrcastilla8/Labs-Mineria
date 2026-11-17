@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "dc66b7236e194fc6ab06",
+  "position": {
+    "x": 24,
+    "y": 10,
+    "width": 720,
+    "height": 82,
+    "tabOrder": 0,
+    "z": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "EJERCICIO 1",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold",
+                      "fontSize": "26pt",
+                      "color": "#173450"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Alquiler de bicicletas en Washington D. C. · 2011–2012",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#516880"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

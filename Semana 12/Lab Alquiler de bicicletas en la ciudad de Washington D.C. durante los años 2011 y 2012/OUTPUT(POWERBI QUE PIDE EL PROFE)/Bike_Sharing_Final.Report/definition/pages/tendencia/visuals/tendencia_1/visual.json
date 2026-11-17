@@ -1,0 +1,178 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "tendencia_1",
+  "position": {
+    "x": 24,
+    "y": 148,
+    "width": 1232,
+    "height": 256,
+    "z": 3000,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "DATE_TIME"
+                }
+              },
+              "queryRef": "vw_FACT_BIKE_SHARING.DATE_TIME",
+              "nativeQueryRef": "DATE_TIME"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DIM_FECHA"
+                    }
+                  },
+                  "Property": "DIA_SEMANA"
+                }
+              },
+              "queryRef": "DIM_FECHA.DIA_SEMANA",
+              "nativeQueryRef": "DIA_SEMANA"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vw_FACT_BIKE_SHARING"
+                    }
+                  },
+                  "Property": "USERS"
+                }
+              },
+              "queryRef": "vw_FACT_BIKE_SHARING.USERS",
+              "nativeQueryRef": "USERS"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DIM_HORA"
+                    }
+                  },
+                  "Property": "HORA"
+                }
+              },
+              "queryRef": "DIM_HORA.HORA",
+              "nativeQueryRef": "HORA"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vw_FACT_BIKE_SHARING"
+                  }
+                },
+                "Property": "DATE_TIME"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'import pandas as pd\nimport matplotlib.pyplot as plt\n\nrequired = {\"DATE_TIME\", \"DIA_SEMANA\", \"HORA\", \"USERS\"}\nif not required.issubset(dataset.columns):\n    raise ValueError(\"Faltan campos: {}\".format(sorted(required - set(dataset.columns))))\ndata = dataset.copy()\ndata[\"DATE_TIME\"] = pd.to_datetime(data[\"DATE_TIME\"], errors=\"raise\").dt.round(\"s\")\ndata[\"USERS\"] = pd.to_numeric(data[\"USERS\"], errors=\"raise\")\ndata[\"DIA_SEMANA\"] = pd.to_numeric(data[\"DIA_SEMANA\"], errors=\"raise\")\ntime_text = data[\"HORA\"].astype(str).str.extract(\n    r\"(?<!\\d)((?:[01]?\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?)\", expand=False)\ndata[\"HORA_INT\"] = pd.to_timedelta(time_text, errors=\"raise\").dt.round(\"s\").dt.components[\"hours\"]\nif data[\"DATE_TIME\"].isna().any() or data[\"DATE_TIME\"].duplicated().any():\n    raise ValueError(\"DATE_TIME debe identificar una sola observación por hora.\")\nif not data[\"USERS\"].between(0, float(\"inf\"), inclusive=\"left\").all():\n    raise ValueError(\"USERS contiene valores nulos, negativos o no finitos.\")\nsql_day = (data[\"DATE_TIME\"].dt.dayofweek + 1) % 7 + 1\nif not data[\"DIA_SEMANA\"].eq(sql_day).all():\n    raise ValueError(\"DIA_SEMANA no coincide con la fecha (SQL: domingo=1).\")\nif not data[\"HORA_INT\"].eq(data[\"DATE_TIME\"].dt.hour).all():\n    raise ValueError(\"HORA no coincide con DATE_TIME.\")\n\norder = [2, 3, 4, 5, 6, 7, 1]  # Lunes a domingo según DIM_FECHA.\nindex = pd.MultiIndex.from_product([order, range(24)], names=[\"DIA_SEMANA\", \"HORA_INT\"])\ngroups = data.groupby([\"DIA_SEMANA\", \"HORA_INT\"])[\"USERS\"]\nmean = groups.mean().reindex(index).reset_index(drop=True)\nq25 = groups.quantile(0.25).reindex(index).reset_index(drop=True)\nq75 = groups.quantile(0.75).reindex(index).reset_index(drop=True)\n\nplt.rcParams.update({\"font.family\": \"DejaVu Sans\", \"font.size\": 9})\nfig, ax = plt.subplots(figsize=(12, 2.55))\nif data.empty:\n    ax.set_axis_off()\n    ax.text(0.5, 0.5, \"Sin datos para el conjunto seleccionado\", ha=\"center\", va=\"center\",\n            transform=ax.transAxes, color=\"#173C66\")\nelse:\n    ax.plot(range(168), mean, color=\"#1764AB\", linewidth=1.6, label=\"Promedio\")\n    ax.plot(range(168), q25, linestyle=\"dashed\", color=\"#758495\", linewidth=1, label=\"Cuantil 25\")\n    ax.plot(range(168), q75, linestyle=\"dashed\", color=\"#A1ADBA\", linewidth=1, label=\"Cuantil 75\")\n    ax.set(title=\"Promedio de usuarios a largo de la semana\",\n           xticks=[i * 24 for i in range(7)],\n           xticklabels=[\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"],\n           xlabel=\"Día y hora de la semana\", ylabel=\"Número de usuarios\", xlim=(0, 167))\n    ax.set_ylim(bottom=0)\n    ax.grid(axis=\"y\", color=\"#DCE4ED\", linewidth=0.6)\n    for boundary in range(24, 168, 24):\n        ax.axvline(boundary, color=\"#E7ECF2\", linewidth=0.6, zorder=0)\n    ax.spines[[\"top\", \"right\"]].set_visible(False)\n    ax.legend(loc=\"upper right\", ncol=3, fontsize=8, frameon=False)\n    ax.set_title(\"Promedio de usuarios a largo de la semana\", color=\"#173C66\", pad=10)\nfig.tight_layout(pad=1.1)\nplt.show()\n'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Python'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,39 @@
+relationship 'Fecha a Fact'
+	fromColumn: vw_FACT_BIKE_SHARING.FECHA_ID
+	toColumn: DIM_FECHA.FECHA_ID
+
+relationship 'Hora a Fact'
+	fromColumn: vw_FACT_BIKE_SHARING.HORA_ID
+	toColumn: DIM_HORA.HORA_ID
+
+relationship 'Clima a Fact'
+	fromColumn: vw_FACT_BIKE_SHARING.WEATHER_ID
+	toColumn: DIM_WEATHER.WEATHER_ID
+
+relationship 'Predicciones test a Fact'
+	crossFilteringBehavior: bothDirections
+	fromColumn: vw_FACT_BIKE_SHARING.ID_PREDICCION
+	toColumn: vw_PREDICCION_BIKE_SHARING.ID_PREDICCION
+
+relationship 'Fecha a Forecast'
+	fromColumn: vw_FORECASTING_BIKE_SHARING.FECHA_ID
+	toColumn: DIM_FECHA.FECHA_ID
+
+relationship 'Hora a Forecast'
+	fromColumn: vw_FORECASTING_BIKE_SHARING.HORA_ID
+	toColumn: DIM_HORA.HORA_ID
+
+relationship 9e3c8e23-9f0b-4b2c-b4fb-3beaca7a9367
+	joinOnDateBehavior: datePartOnly
+	fromColumn: DIM_FECHA.FECHA
+	toColumn: LocalDateTable_8d358611-a45f-48d0-8c9d-be3004e1e3d6.Date
+
+relationship df607620-4a88-4efe-a816-fb8ab5638e76
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_FACT_BIKE_SHARING.DATE_TIME
+	toColumn: LocalDateTable_938d53ed-a848-455f-8613-03a0869b1145.Date
+
+relationship f043f82f-e27a-4bbb-a21e-bd19851dcad5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vw_FORECASTING_BIKE_SHARING.DATE_TIME
+	toColumn: LocalDateTable_3974d847-ee8f-467a-a99b-a8107602ee59.Date

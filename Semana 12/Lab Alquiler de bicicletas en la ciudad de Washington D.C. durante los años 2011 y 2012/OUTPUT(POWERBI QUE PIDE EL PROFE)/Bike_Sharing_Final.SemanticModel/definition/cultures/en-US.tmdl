@@ -1,0 +1,229 @@
+cultureInfo en-US
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "dim_fecha.fecha": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "DIM_FECHA",
+			          "ConceptualProperty": "FECHA"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Fecha": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_fecha.nombre_mes": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "DIM_FECHA",
+			          "ConceptualProperty": "NOMBRE_MES"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Mes": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_fact_bike_sharing.sum_users": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FACT_BIKE_SHARING",
+			          "ConceptualProperty": ".sum_users"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Usuarios": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_fact_bike_sharing.promedio_movil": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FACT_BIKE_SHARING",
+			          "ConceptualProperty": ".promedio_movil"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Promedio móvil": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_fact_bike_sharing.user_moth": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FACT_BIKE_SHARING",
+			          "ConceptualProperty": ".user_moth"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Usuarios": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_fact_bike_sharing.users_prev_month": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FACT_BIKE_SHARING",
+			          "ConceptualProperty": ".users_prev_month"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Usuarios mes previo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_fact_bike_sharing.var_users_month": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FACT_BIKE_SHARING",
+			          "ConceptualProperty": ".%var_users_month"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "%Variación": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_fecha.test_model_exogeneas_catboost": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "DIM_FECHA",
+			          "ConceptualProperty": "TEST MODEL_EXOGENEAS_CatBoost"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "CatBoost": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_forecasting_bike_sharing.model_forecaster": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FORECASTING_BIKE_SHARING",
+			          "ConceptualProperty": "MODEL_FORECASTER"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "vw_forecasting_bike_sharing.date_time": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FORECASTING_BIKE_SHARING",
+			          "ConceptualProperty": "DATE_TIME"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Fecha y hora": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "vw_forecasting_bike_sharing.model_exogeneas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "vw_FORECASTING_BIKE_SHARING",
+			          "ConceptualProperty": "MODEL_EXOGENEAS"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Exógenas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json

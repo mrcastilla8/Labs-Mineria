@@ -1,0 +1,81 @@
+table vw_FORECASTING_BIKE_SHARING
+	lineageTag: a8f3a134-626c-47c2-bf14-d7a525c10e2a
+
+	measure 'Forecast Forecaster' = AVERAGE('vw_FORECASTING_BIKE_SHARING'[MODEL_FORECASTER])
+		formatString: #,0.00
+		lineageTag: 9c877c54-31b5-4861-bd1f-fdd0fcc7194b
+
+	measure 'Forecast Exógenas' = AVERAGE('vw_FORECASTING_BIKE_SHARING'[MODEL_EXOGENEAS])
+		formatString: #,0.00
+		lineageTag: d483c325-c8b0-4398-90e4-ce791e8f8b1b
+
+	measure 'Forecast LightGBM' = AVERAGE('vw_FORECASTING_BIKE_SHARING'[MODEL_EXOGENEAS_LGBM])
+		formatString: #,0.00
+		lineageTag: 4e11c5bf-64ce-4f4f-93bb-abe8f8177aa9
+
+	measure 'Forecast CatBoost' = AVERAGE('vw_FORECASTING_BIKE_SHARING'[MODEL_EXOGENEAS_CatBoost])
+		formatString: #,0.00
+		lineageTag: 10041a3e-7314-4e0a-b57f-168a17b73b4c
+
+	column DATE_TIME
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b3b2216f-a8da-4a41-9116-c5e234a031a6
+		summarizeBy: none
+		sourceColumn: DATE_TIME
+
+		variation Variación
+			isDefault
+			relationship: f043f82f-e27a-4bbb-a21e-bd19851dcad5
+			defaultHierarchy: LocalDateTable_3974d847-ee8f-467a-a99b-a8107602ee59.'Date Hierarchy'
+
+	column FECHA_ID
+		dataType: int64
+		lineageTag: 306a9ae7-286c-4ff9-a59a-c0684e6fb1a4
+		summarizeBy: none
+		sourceColumn: FECHA_ID
+
+	column HORA_ID
+		dataType: int64
+		lineageTag: c89c502c-dc9f-4dfc-98ef-7d50f806bef4
+		summarizeBy: none
+		sourceColumn: HORA_ID
+
+	column MODEL_FORECASTER
+		dataType: double
+		lineageTag: 500b34cc-cf5c-4d76-9f0f-bccd61b3ed37
+		summarizeBy: sum
+		sourceColumn: MODEL_FORECASTER
+
+	column MODEL_EXOGENEAS
+		dataType: double
+		lineageTag: d3056878-1be3-4541-8e90-3ef77000b674
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS
+
+	column MODEL_EXOGENEAS_LGBM
+		dataType: double
+		lineageTag: c566dde4-2bc9-43e4-b355-34017d76dd69
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS_LGBM
+
+	column MODEL_EXOGENEAS_CatBoost
+		dataType: double
+		lineageTag: 92549b8e-bd71-4cc4-8b26-b465be9884de
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS_CatBoost
+
+	column MODEL_EXOGENEAS_LSTM
+		dataType: double
+		lineageTag: fe710113-7999-48a0-8e40-9b3ac43d613d
+		summarizeBy: sum
+		sourceColumn: MODEL_EXOGENEAS_LSTM
+
+	partition vw_FORECASTING_BIKE_SHARING = m
+		mode: import
+		source =
+				let
+				            Source = Sql.Database("Renato\SQLEXPRESS", "DMT_BIKE_SHARING"),
+				            Object = Source{[Schema="dbo",Item="vw_FORECASTING_BIKE_SHARING"]}[Data]
+				        in
+				            Object

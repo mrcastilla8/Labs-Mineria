@@ -1,0 +1,79 @@
+{
+  "archive": "/mnt/data/Bike_Sharing_Final_Integrado.zip",
+  "archive_bytes": 70145,
+  "pages": {
+    "5164c5ad617a4bac8b77": {
+      "owner": "Poma_sin_SecurityBindings_PRUEBA",
+      "files": 9,
+      "visuals": 8,
+      "unchanged": true
+    },
+    "mapacalor": {
+      "owner": "Marco",
+      "files": 9,
+      "visuals": 8,
+      "unchanged": true
+    },
+    "tendencia": {
+      "owner": "Aldana_sin_SecurityBindings_PRUEBA",
+      "files": 7,
+      "visuals": 6,
+      "unchanged": true
+    },
+    "correlacion": {
+      "owner": "Marco",
+      "files": 8,
+      "visuals": 7,
+      "unchanged": true
+    },
+    "modelos": {
+      "owner": "Brickzon",
+      "files": 5,
+      "visuals": 4,
+      "unchanged": true
+    },
+    "prediccion": {
+      "owner": "Vera",
+      "files": 7,
+      "visuals": 6,
+      "unchanged": true
+    }
+  },
+  "visual_count": 39,
+  "json_validated": 50,
+  "model_tables": [
+    "DIM_FECHA",
+    "DIM_HORA",
+    "DIM_WEATHER",
+    "DateTableTemplate_23843ff5-5b20-48bd-bbc3-f48da3892d2f",
+    "Forecasting",
+    "LocalDateTable_3974d847-ee8f-467a-a99b-a8107602ee59",
+    "LocalDateTable_8d358611-a45f-48d0-8c9d-be3004e1e3d6",
+    "LocalDateTable_938d53ed-a848-455f-8613-03a0869b1145",
+    "Modelos",
+    "vw_FACT_BIKE_SHARING",
+    "vw_FORECASTING_BIKE_SHARING",
+    "vw_PREDICCION_BIKE_SHARING"
+  ],
+  "extra_TEST_measures": [
+    "TEST MODEL_FORECASTER",
+    "TEST MODEL_EXOGENEAS",
+    "TEST MODEL_EXOGENEAS_CatBoost",
+    "TEST MODEL_EXOGENEAS_LGBM",
+    "TEST MODEL_EXOGENEAS_LSTM"
+  ],
+  "extra_parameter_tables": [
+    "Modelos",
+    "Forecasting"
+  ],
+  "culture_entries_added": [
+    "dim_fecha.test_model_exogeneas_catboost",
+    "vw_forecasting_bike_sharing.model_forecaster",
+    "vw_forecasting_bike_sharing.date_time",
+    "vw_forecasting_bike_sharing.model_exogeneas"
+  ],
+  "missing_references": [],
+  "cache_files": 0,
+  "source": "integracion pbip.zip",
+  "timestamp": "2026-11-10T20:33:16.377353+00:00"
+}

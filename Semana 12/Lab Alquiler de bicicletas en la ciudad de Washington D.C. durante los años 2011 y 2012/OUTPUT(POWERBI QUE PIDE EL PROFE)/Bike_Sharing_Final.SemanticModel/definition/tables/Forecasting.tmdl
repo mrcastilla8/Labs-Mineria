@@ -1,0 +1,44 @@
+table Forecasting
+	lineageTag: b873ce16-0d3b-4108-9911-84aa6820f630
+
+	column Forecasting
+		dataType: string
+		lineageTag: b873ce16-0d3b-4108-9911-84aa6820f631
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Forecasting Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Forecasting Fields'
+
+	column 'Forecasting Fields'
+		dataType: string
+		isHidden
+		lineageTag: b873ce16-0d3b-4108-9911-84aa6820f632
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Forecasting Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+	column 'Forecasting Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b873ce16-0d3b-4108-9911-84aa6820f633
+		summarizeBy: none
+		sourceColumn: [Value3]
+
+	partition Forecasting = calculated
+		mode: import
+		source =
+				{
+				    ("Forecaster", NAMEOF('vw_FORECASTING_BIKE_SHARING'[MODEL_FORECASTER]), 0),
+				    ("Exógenas", NAMEOF('vw_FORECASTING_BIKE_SHARING'[MODEL_EXOGENEAS]), 1),
+				    ("LightGBM", NAMEOF('vw_FORECASTING_BIKE_SHARING'[MODEL_EXOGENEAS_LGBM]), 2),
+				    ("CatBoost", NAMEOF('vw_FORECASTING_BIKE_SHARING'[MODEL_EXOGENEAS_CatBoost]), 3)
+				}
