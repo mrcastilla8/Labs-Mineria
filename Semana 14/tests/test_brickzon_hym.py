@@ -1,10 +1,13 @@
-"""Pruebas unitarias sintéticas para las secciones de Brickzon (ADWIN y visualización).
+"""Pruebas unitarias e integración para las secciones de Brickzon (ADWIN y visualización).
 
-Este archivo valida de forma 100% aislada e independiente los contratos de:
-- ejecutar_adwin (Sección 10.1, celda 75)
-- graficar_adwin (Sección 10.2, celda 78)
-- Metadatos e integridad de la interpretación de Brickzon (celdas 81 y 116)
-No requiere conexión a Internet, datos externos ni ejecución completa de notebooks.
+Este archivo valida de forma rigurosa y reproducible:
+- Mocks de contrato, escalado robusto e inmutabilidad estricta.
+- Integración real con river.drift.ADWIN (versión 0.27.0).
+- Detección en señales constantes, escalón 0->1, escalón inverso 1->0.
+- Detectores independientes por variable y preservación de índices originales con nulos/inf.
+- Estados de evaluabilidad ('Evaluado', 'Sin referencia suficiente', 'Sin secuencia suficiente').
+- Validación de parámetros de graficar_adwin (ventana > 0, min_periods, infinitos y secuencias vacías).
+- Metadatos e integridad del notebook e interpretación de Brickzon (celdas 75, 78, 81, 82, 117).
 """
 import ast
 import json
@@ -16,6 +19,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
+import river
+from river import drift as river_drift
 
 ROOT = Path(__file__).resolve().parents[2]
 HYM = ROOT / 'Semana 14' / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
@@ -120,6 +125,22 @@ def brickzon():
     return ns
 
 
+@pytest.fixture(scope='module')
+def brickzon_real_river():
+    """Fixture de integración directa con river.drift.ADWIN real (River 0.27.0)."""
+    assert river.__version__ == '0.27.0', f"Se requiere river 0.27.0, encontrado {river.__version__}"
+    ns = {
+        'np': np,
+        'pd': pd,
+        'plt': plt,
+        'tqdm': MockTqdm,
+        'drift': river_drift,
+    }
+    definitions(cell(HYM, 75), {'ejecutar_adwin'}, ns)
+    definitions(cell(HYM, 78), {'graficar_adwin'}, ns)
+    return ns
+
+
 def crear_datos_sinteticos(n_ref=100, n_seq=200, drift_en_pos=None, semilla=42):
     rng = np.random.default_rng(semilla)
     ref = pd.DataFrame({
@@ -150,19 +171,28 @@ def crear_datos_sinteticos(n_ref=100, n_seq=200, drift_en_pos=None, semilla=42):
 
 
 def test_notebook_json_integrity_and_brickzon_metadata():
-    """Valida formato v4, celdas y etiquetas owner-brickzon en el notebook."""
+    """Valida formato v4, total de 118 celdas y metadatos de Brickzon."""
     data = json.loads(HYM.read_text(encoding='utf-8'))
     assert data.get('nbformat') == 4, "El notebook debe ser nbformat v4"
     assert data.get('nbformat_minor', 0) >= 2
+    assert len(data['cells']) == 118, f"Se esperaban 118 celdas, se encontraron {len(data['cells'])}"
 
     # Verificar presencia y etiquetas de celdas clave
     c75 = data['cells'][75]
     c78 = data['cells'][78]
     c81 = data['cells'][81]
-    c116 = data['cells'][116]
+    c82 = data['cells'][82]
+    c117 = data['cells'][117]
+
+    assert c75.get('id') == '8a653bd7'
+    assert c78.get('id') == '522ed1e3'
+    assert c81.get('id') == '350eb169'
+    assert c82.get('id') == 'd8b01ad1'
+    assert c117.get('id') == 'e70c86ce'
 
     assert 'owner-brickzon' in c75.get('metadata', {}).get('tags', [])
     assert 'owner-brickzon' in c78.get('metadata', {}).get('tags', [])
+    assert 'owner-brickzon' in c82.get('metadata', {}).get('tags', [])
     assert 'def ejecutar_adwin' in ''.join(c75['source'])
     assert 'def graficar_adwin' in ''.join(c78['source'])
 
@@ -174,10 +204,21 @@ def test_notebook_json_integrity_and_brickzon_metadata():
     assert 'cohortes de incorporación' in txt_81
     assert 'Sección 11' in txt_81
     assert 'retardo de detección' in txt_81.lower() or 'detection latency' in txt_81
+    assert 'ADWIN2' in txt_81
+    # B01 / B03: no afirmar resultados anticipados de datos reales ni de Aldana
+    assert 'ADWIN no detectó cambios en los datos reales' not in txt_81
+    assert 'detectó exitosamente los cambios' not in txt_81
 
-    # Verificar checklist de entrega en celda 116
-    txt_116 = ''.join(c116['source'])
-    assert '- [x] **Brickzon:** ADWIN procesado en orden establecido; eventos/configuración trazables; límites temporales explicados.' in txt_116
+    # Verificar celda de resumen dinámico 82
+    txt_82 = ''.join(c82['source'])
+    assert 'res_adwin' in txt_82
+    assert 'alertas_adwin' in txt_82
+    assert 'Sin referencia suficiente' in txt_82
+    assert 'Sin secuencia suficiente' in txt_82
+
+    # Verificar checklist de entrega en celda 117 (desmarcada según B01)
+    txt_117 = ''.join(c117['source'])
+    assert '- [ ] **Brickzon:** ADWIN procesado en orden establecido; eventos/configuración trazables; límites temporales explicados.' in txt_117
 
 
 def test_adwin_scaling_parameters_exclusive_to_reference(brickzon):
@@ -190,11 +231,12 @@ def test_adwin_scaling_parameters_exclusive_to_reference(brickzon):
         'V_iqr': [10.0, 20.0, 30.0, 40.0, 50.0] * 6,  # mediana=30, iqr=20
         'V_std': [10.0] * 15 + [10.0] * 15,          # constante -> escala = 1.0
     })
+    # Secuencia suficiente (35 observaciones >= max(20, 30, 32))
     seq = pd.DataFrame({
-        'ID': [101, 102],
-        'Dt_Customer': pd.date_range('2021-01-01', periods=2),
-        'V_iqr': [50.0, 70.0],
-        'V_std': [20.0, 30.0],
+        'ID': np.arange(101, 136),
+        'Dt_Customer': pd.date_range('2021-01-01', periods=35),
+        'V_iqr': [50.0, 70.0] + [30.0] * 33,
+        'V_std': [20.0, 30.0] + [10.0] * 33,
     })
 
     # Espiar llamadas a update para verificar los valores escalados exactos
@@ -221,14 +263,14 @@ def test_adwin_scaling_parameters_exclusive_to_reference(brickzon):
     # x2 = 70.0 -> (70 - 30) / 20 = 2.0
     current_col = 'V_iqr'
     ejecutar_spy(seq[['ID', 'Dt_Customer', 'V_iqr']], ref[['ID', 'Dt_Customer', 'V_iqr']], ['V_iqr'], progreso=False)
-    assert np.allclose(valores_ingresados['V_iqr'], [1.0, 2.0])
+    assert np.allclose(valores_ingresados['V_iqr'][:2], [1.0, 2.0])
 
     # Para V_std (constante): mediana_ref = 10.0, iqr = 0, std = 0 -> escala = 1.0
     # x1 = 20.0 -> (20 - 10) / 1.0 = 10.0
     # x2 = 30.0 -> (30 - 10) / 1.0 = 20.0
     current_col = 'V_std'
     ejecutar_spy(seq[['ID', 'Dt_Customer', 'V_std']], ref[['ID', 'Dt_Customer', 'V_std']], ['V_std'], progreso=False)
-    assert np.allclose(valores_ingresados['V_std'], [10.0, 20.0])
+    assert np.allclose(valores_ingresados['V_std'][:2], [10.0, 20.0])
 
 
 def test_adwin_detects_synthetic_drift_and_event_contract(brickzon):
@@ -325,7 +367,7 @@ def test_adwin_insufficient_reference_handling(brickzon):
 
 
 def test_adwin_empty_or_edge_inputs(brickzon):
-    """Verifica respuesta adecuada ante listas de columnas vacías o secuencias vacías."""
+    """B04: Verifica secuencias vacías, completamente inválidas y menores que el mínimo establecido."""
     ref, seq = crear_datos_sinteticos(n_ref=40, n_seq=50)
     fn = brickzon['ejecutar_adwin']
 
@@ -333,12 +375,39 @@ def test_adwin_empty_or_edge_inputs(brickzon):
     res_vacio, ev_vacio = fn(seq, ref, [], progreso=False)
     assert len(res_vacio) == 0 and len(ev_vacio) == 0
 
-    # Secuencia vacía
+    # 1. Secuencia vacía (len == 0): devuelve 'Sin secuencia suficiente', 0 omitidas, 0 procesadas
     seq_vacia = seq.iloc[:0].copy()
     res_seq0, ev_seq0 = fn(seq_vacia, ref, ['MntWines'], progreso=False)
     assert len(res_seq0) == 1
     assert res_seq0.iloc[0]['procesadas'] == 0
+    assert res_seq0.iloc[0]['omitidas'] == 0
+    assert res_seq0.iloc[0]['alertas'] == 0
+    assert res_seq0.iloc[0]['estado'] == 'Sin secuencia suficiente'
     assert len(ev_seq0) == 0
+
+    # 2. Secuencia completamente inválida (todas NaN / inf): devuelve 'Sin secuencia suficiente'
+    seq_invalida = seq.copy()
+    seq_invalida['MntWines'] = np.nan
+    seq_invalida.loc[0, 'MntWines'] = np.inf
+    seq_invalida.loc[1, 'MntWines'] = -np.inf
+    res_inv, ev_inv = fn(seq_invalida, ref, ['MntWines'], progreso=False)
+    assert len(res_inv) == 1
+    assert res_inv.iloc[0]['procesadas'] == 0
+    assert res_inv.iloc[0]['omitidas'] == len(seq_invalida)
+    assert res_inv.iloc[0]['alertas'] == 0
+    assert res_inv.iloc[0]['estado'] == 'Sin secuencia suficiente'
+    assert len(ev_inv) == 0
+
+    # 3. Secuencia menor que el mínimo establecido (n_finitas < max(20, grace_period, clock))
+    # Con clock=32, grace_period=30 -> mínimo es 32 observaciones
+    seq_menor = seq.iloc[:15].copy()
+    res_menor, ev_menor = fn(seq_menor, ref, ['MntWines'], delta=0.002, clock=32, grace_period=30, progreso=False)
+    assert len(res_menor) == 1
+    assert res_menor.iloc[0]['procesadas'] == 0
+    assert res_menor.iloc[0]['omitidas'] == 15
+    assert res_menor.iloc[0]['alertas'] == 0
+    assert res_menor.iloc[0]['estado'] == 'Sin secuencia suficiente'
+    assert len(ev_menor) == 0
 
 
 def test_graficar_adwin_non_interactive_agg(brickzon, monkeypatch):
@@ -368,3 +437,187 @@ def test_graficar_adwin_non_interactive_agg(brickzon, monkeypatch):
     seq_corta = seq.iloc[:10]
     fn(seq_corta, eventos_vacios, ['MntWines'], corte=5, ventana=50)
     plt.close('all')
+
+
+def test_graficar_adwin_validations_and_edge_cases(brickzon, monkeypatch):
+    """B05: Verifica validación de ventana (>0 int), min_periods, infinitos y secuencias vacías."""
+    monkeypatch.setattr(plt, 'show', lambda *args, **kwargs: None)
+    fn = brickzon['graficar_adwin']
+    ref, seq = crear_datos_sinteticos(n_ref=50, n_seq=60)
+    eventos = pd.DataFrame(columns=['variable', 'indice_0based', 'numero_observacion',
+                                    'ID', 'fecha', 'valor_original', 'ancho_ventana'])
+
+    # Validación de parámetro ventana: debe ser entero positivo
+    for v_invalida in [0, -1, -80, '80', 20.5, None]:
+        with pytest.raises(ValueError):
+            fn(seq, eventos, ['MntWines'], corte=25, ventana=v_invalida)
+
+    # Ventanas de tamaño 1, 2 y 4 (calcula min_periods sin superar ventana)
+    for v in [1, 2, 4]:
+        fn(seq, eventos, ['MntWines'], corte=25, ventana=v)
+
+    # Secuencia con valores infinitos (+inf, -inf) y NaN
+    seq_inf = seq.copy()
+    seq_inf.loc[5, 'MntWines'] = np.inf
+    seq_inf.loc[15, 'MntWines'] = -np.inf
+    seq_inf.loc[25, 'MntWines'] = np.nan
+    fn(seq_inf, eventos, ['MntWines'], corte=25, ventana=4)
+
+    # Secuencia vacía
+    seq_vacia = seq.iloc[:0].copy()
+    fn(seq_vacia, eventos, ['MntWines'], corte=0, ventana=4)
+    plt.close('all')
+
+
+# ==============================================================================
+# B02: PRUEBAS DE INTEGRACIÓN DIRECTA CON RIVER 0.27.0 (river.drift.ADWIN)
+# ==============================================================================
+
+def test_adwin_real_river_constant_signal_zero_alerts(brickzon_real_river):
+    """B02: Señal constante sin cambios con river.drift.ADWIN real no produce alertas."""
+    fn = brickzon_real_river['ejecutar_adwin']
+    n = 1024
+    ref = pd.DataFrame({
+        'ID': range(100),
+        'Dt_Customer': pd.date_range('2020-01-01', periods=100),
+        'constante': [0.5] * 100,
+    })
+    seq = pd.DataFrame({
+        'ID': range(1000, 1000 + n),
+        'Dt_Customer': pd.date_range('2021-01-01', periods=n),
+        'constante': [0.5] * n,
+    })
+
+    res, eventos = fn(seq, ref, ['constante'], delta=0.002, clock=32, grace_period=30, progreso=False)
+    row = res.iloc[0]
+    assert row['alertas'] == 0, f"Una señal constante no debe generar alertas, obtuvo {row['alertas']}"
+    assert row['procesadas'] == n
+    assert row['omitidas'] == 0
+    assert row['estado'] == 'Evaluado'
+    assert len(eventos) == 0
+
+
+def test_adwin_real_river_step_signals_detection(brickzon_real_river):
+    """B02: Detección con river.drift.ADWIN real en señal 0->1 y señal inversa 1->0."""
+    fn = brickzon_real_river['ejecutar_adwin']
+    n = 1024
+    punto_intervencion = 512
+
+    # 1. Señal con 512 observaciones de 0 seguidas de 512 observaciones de 1
+    ref_0 = pd.DataFrame({
+        'ID': range(100),
+        'Dt_Customer': pd.date_range('2020-01-01', periods=100),
+        'step_0_1': [0.0] * 100,
+    })
+    seq_0_1 = pd.DataFrame({
+        'ID': range(1000, 1000 + n),
+        'Dt_Customer': pd.date_range('2021-01-01', periods=n),
+        'step_0_1': [0.0] * punto_intervencion + [1.0] * (n - punto_intervencion),
+    })
+
+    res_0_1, ev_0_1 = fn(seq_0_1, ref_0, ['step_0_1'], delta=0.002, clock=32, grace_period=30, progreso=False)
+    assert res_0_1.iloc[0]['alertas'] >= 1, "Debe detectar al menos una alerta en señal 0->1"
+    assert res_0_1.iloc[0]['procesadas'] == n
+    assert res_0_1.iloc[0]['omitidas'] == 0
+    assert res_0_1.iloc[0]['estado'] == 'Evaluado'
+    for _, ev in ev_0_1.iterrows():
+        assert ev['indice_0based'] >= punto_intervencion, "Alerta debe ser posterior al punto de intervención (>= 512)"
+        assert ev['numero_observacion'] == ev['indice_0based'] + 1
+        assert ev['ancho_ventana'] > 0
+
+    # 2. Señal inversa: 512 observaciones de 1 seguidas de 512 observaciones de 0
+    ref_1 = pd.DataFrame({
+        'ID': range(100),
+        'Dt_Customer': pd.date_range('2020-01-01', periods=100),
+        'step_1_0': [1.0] * 100,
+    })
+    seq_1_0 = pd.DataFrame({
+        'ID': range(1000, 1000 + n),
+        'Dt_Customer': pd.date_range('2021-01-01', periods=n),
+        'step_1_0': [1.0] * punto_intervencion + [0.0] * (n - punto_intervencion),
+    })
+
+    res_1_0, ev_1_0 = fn(seq_1_0, ref_1, ['step_1_0'], delta=0.002, clock=32, grace_period=30, progreso=False)
+    assert res_1_0.iloc[0]['alertas'] >= 1, "Debe detectar al menos una alerta en señal inversa 1->0"
+    assert res_1_0.iloc[0]['procesadas'] == n
+    assert res_1_0.iloc[0]['omitidas'] == 0
+    assert res_1_0.iloc[0]['estado'] == 'Evaluado'
+    for _, ev in ev_1_0.iterrows():
+        assert ev['indice_0based'] >= punto_intervencion, "Alerta debe ser posterior al punto de intervención (>= 512)"
+        assert ev['numero_observacion'] == ev['indice_0based'] + 1
+        assert ev['ancho_ventana'] > 0
+
+
+def test_adwin_real_river_independent_detectors(brickzon_real_river):
+    """B02: river.drift.ADWIN instancia detectores independientes por variable en una misma ejecución."""
+    fn = brickzon_real_river['ejecutar_adwin']
+    n = 1024
+    ref = pd.DataFrame({
+        'ID': range(100),
+        'Dt_Customer': pd.date_range('2020-01-01', periods=100),
+        'constante': [0.0] * 100,
+        'step_0_1': [0.0] * 100,
+        'step_1_0': [1.0] * 100,
+    })
+    seq = pd.DataFrame({
+        'ID': range(1000, 1000 + n),
+        'Dt_Customer': pd.date_range('2021-01-01', periods=n),
+        'constante': [0.0] * n,
+        'step_0_1': [0.0] * 512 + [1.0] * 512,
+        'step_1_0': [1.0] * 512 + [0.0] * 512,
+    })
+
+    res, eventos = fn(seq, ref, ['constante', 'step_0_1', 'step_1_0'],
+                      delta=0.002, clock=32, grace_period=30, progreso=False)
+
+    assert set(res['variable']) == {'constante', 'step_0_1', 'step_1_0'}
+    res_const = res.loc[res['variable'].eq('constante')].iloc[0]
+    res_0_1 = res.loc[res['variable'].eq('step_0_1')].iloc[0]
+    res_1_0 = res.loc[res['variable'].eq('step_1_0')].iloc[0]
+
+    assert res_const['alertas'] == 0, "Detector constante no debe verse contaminado por otras variables"
+    assert res_0_1['alertas'] >= 1
+    assert res_1_0['alertas'] >= 1
+    assert 'constante' not in set(eventos['variable'])
+
+
+def test_adwin_real_river_missing_values_preserves_indices(brickzon_real_river):
+    """B02: river.drift.ADWIN maneja valores faltantes e infinitos preservando índices originales."""
+    fn = brickzon_real_river['ejecutar_adwin']
+    n = 1024
+    punto_intervencion = 512
+    ref = pd.DataFrame({
+        'ID': range(100),
+        'Dt_Customer': pd.date_range('2020-01-01', periods=100),
+        'senal': [0.0] * 100,
+    })
+    valores = [0.0] * punto_intervencion + [1.0] * (n - punto_intervencion)
+    seq = pd.DataFrame({
+        'ID': range(2000, 2000 + n),
+        'Dt_Customer': pd.date_range('2021-01-01', periods=n),
+        'senal': valores,
+    })
+
+    # Inyectar valores no finitos (NaN, inf, -inf)
+    posiciones_nulas = [10, 50, 100, 200, 600, 700]
+    seq.loc[10, 'senal'] = np.nan
+    seq.loc[50, 'senal'] = np.inf
+    seq.loc[100, 'senal'] = -np.inf
+    seq.loc[200, 'senal'] = np.nan
+    seq.loc[600, 'senal'] = np.nan
+    seq.loc[700, 'senal'] = np.inf
+
+    res, eventos = fn(seq, ref, ['senal'], delta=0.002, clock=32, grace_period=30, progreso=False)
+    row = res.iloc[0]
+    assert row['omitidas'] == len(posiciones_nulas)
+    assert row['procesadas'] == n - len(posiciones_nulas)
+    assert row['alertas'] >= 1
+    assert row['estado'] == 'Evaluado'
+
+    for _, ev in eventos.iterrows():
+        assert ev['indice_0based'] not in posiciones_nulas
+        assert ev['indice_0based'] >= punto_intervencion
+        assert ev['numero_observacion'] == ev['indice_0based'] + 1
+        assert ev['ID'] == seq.loc[ev['indice_0based'], 'ID']
+        assert ev['fecha'] == seq.loc[ev['indice_0based'], 'Dt_Customer']
+        assert ev['valor_original'] == seq.loc[ev['indice_0based'], 'senal']
