@@ -6,6 +6,7 @@ GPU ni ejecución completa del flujo experimental.
 """
 import ast
 import contextlib
+import copy
 import gc
 import json
 from pathlib import Path
@@ -28,10 +29,34 @@ ROOT = Path(__file__).resolve().parents[2]
 ELEC = ROOT / 'Semana 14' / 'Laboratorio_Electricidad_Integral.ipynb'
 
 
-def cell(path, idx):
-    """Extrae el código fuente concatenado de la celda especificada."""
-    nb = json.loads(path.read_text(encoding='utf-8'))
-    return ''.join(nb['cells'][idx]['source'])
+def celda_por_id(nb_o_path, cell_id):
+    """Localiza una celda mediante su ID estable y verifica que exista exactamente una coincidencia."""
+    if isinstance(nb_o_path, (str, Path)):
+        nb = json.loads(Path(nb_o_path).read_text(encoding='utf-8'))
+    elif isinstance(nb_o_path, dict):
+        nb = nb_o_path
+    else:
+        raise TypeError("nb_o_path debe ser una ruta Path/str o un diccionario de notebook")
+    matches = [c for c in nb.get('cells', []) if c.get('id') == cell_id]
+    assert len(matches) == 1, (
+        f"Se esperaba exactamente 1 coincidencia para la celda con id='{cell_id}', "
+        f"pero se encontraron {len(matches)}."
+    )
+    return matches[0]
+
+
+def codigo_celda_id(nb_o_path, cell_id):
+    """Extrae el código o texto concatenado de una celda localizada por su ID estable."""
+    c = celda_por_id(nb_o_path, cell_id)
+    return ''.join(c.get('source', []))
+
+
+def cell(path, id_o_idx):
+    """Extrae el código fuente concatenado localizando preferentemente por ID estable o por índice."""
+    if isinstance(id_o_idx, str):
+        return codigo_celda_id(path, id_o_idx)
+    nb = json.loads(Path(path).read_text(encoding='utf-8'))
+    return ''.join(nb['cells'][id_o_idx]['source'])
 
 
 def definitions(source, names, namespace):
@@ -254,9 +279,9 @@ def brickzon_env():
         'confusion_matrix': confusion_matrix,
     }
 
-    definitions(cell(ELEC, 39), {'ProgresoEpocas', 'ExtractorAutoencoder'}, ns)
+    definitions(codigo_celda_id(ELEC, '45912de6'), {'ProgresoEpocas', 'ExtractorAutoencoder'}, ns)
     definitions(
-        cell(ELEC, 43),
+        codigo_celda_id(ELEC, 'd9c7fffa'),
         {'BarraXGB', 'BarraLightGBM', 'PARES', 'crear_modelo', 'ajustar_clasificador', 'metricas_binarias'},
         ns,
     )
@@ -268,40 +293,97 @@ def brickzon_env():
 # ==============================================================================
 
 def test_notebook_json_integrity_and_brickzon_sections():
-    """Valida formato JSON v4, integridad de celdas y checklist de Brickzon."""
+    """Valida formato JSON v4, integridad de celdas por ID y checklist pendiente de Brickzon."""
     assert ELEC.is_file(), f"No se encontró el notebook en {ELEC}"
     nb = json.loads(ELEC.read_text(encoding='utf-8'))
     assert nb.get('nbformat') == 4
     assert nb.get('nbformat_minor', 0) >= 2
-    assert len(nb['cells']) == 62
+    # No se exige un número rígido de celdas para garantizar compatibilidad con PR #22 de Vera
+    assert len(nb.get('cells', [])) >= 60, "El notebook debe contener todas las celdas del laboratorio"
 
-    for i, c in enumerate(nb['cells']):
+    for c in nb['cells']:
         assert 'cell_type' in c and c['cell_type'] in ('code', 'markdown')
         assert 'source' in c and isinstance(c['source'], list)
+        assert 'id' in c and isinstance(c['id'], str), "Todas las celdas deben tener un ID estable"
 
-    # Verificación de secciones 6.3, 7 y 9
-    src38 = ''.join(nb['cells'][38]['source'])
-    assert '6.3. Autoencoder' in src38 and 'Brickzon' in src38
+    # Verificación de secciones 6.3, 7 y 9 mediante IDs estables
+    # 6.3 Autoencoder (Markdown '8b8cf438' y Código '45912de6')
+    src_md_ae = codigo_celda_id(nb, '8b8cf438')
+    assert '6.3. Autoencoder' in src_md_ae and 'Brickzon' in src_md_ae
 
-    src39 = ''.join(nb['cells'][39]['source'])
-    assert 'class ExtractorAutoencoder' in src39 and 'class ProgresoEpocas' in src39
+    src_code_ae = codigo_celda_id(nb, '45912de6')
+    assert 'class ExtractorAutoencoder' in src_code_ae and 'class ProgresoEpocas' in src_code_ae
 
-    src42 = ''.join(nb['cells'][42]['source'])
-    assert '7. Clasificadores' in src42 and 'Brickzon' in src42
+    # 7 Clasificadores (Markdown '0222255d' y Código 'd9c7fffa')
+    src_md_clf = codigo_celda_id(nb, '0222255d')
+    assert '7. Clasificadores' in src_md_clf and 'Brickzon' in src_md_clf
 
-    src43 = ''.join(nb['cells'][43]['source'])
-    assert 'class BarraXGB' in src43 and 'class BarraLightGBM' in src43
-    assert 'def crear_modelo' in src43 and 'def metricas_binarias' in src43
+    src_code_clf = codigo_celda_id(nb, 'd9c7fffa')
+    assert 'class BarraXGB' in src_code_clf and 'class BarraLightGBM' in src_code_clf
+    assert 'def crear_modelo' in src_code_clf and 'def metricas_binarias' in src_code_clf
 
-    src60 = ''.join(nb['cells'][60]['source'])
-    assert 'Autoencoder y modelos — Brickzon:' in src60
-    assert '[PENDIENTE' not in src60.split('Autoencoder y modelos — Brickzon:')[1].split('\n')[0]
-    assert '- [x] **Brickzon:** Autoencoder y los tres clasificadores probados' in src60
+    # 9 Conclusiones y checklist (Markdown 'd9714129')
+    src_concl = codigo_celda_id(nb, 'd9714129')
+    assert 'Autoencoder y modelos — Brickzon:' in src_concl
 
-    # Palabras clave del análisis técnico de Brickzon
-    concl_line = [l for l in nb['cells'][60]['source'] if 'Autoencoder y modelos — Brickzon:' in l][0]
-    for termino in ['128 → 64 → 32', 'Adam', 'MSE', '32', 'SMOTE', 'ADASYN', 'XGBoost', 'PR-AUC']:
-        assert termino in concl_line, f"Falta el término técnico clave '{termino}' en la conclusión de Brickzon"
+    # Las conclusiones empíricas deben permanecer como PENDIENTE antes de la ejecución real en Colab
+    concl_lines = [l for l in src_concl.splitlines() if 'Autoencoder y modelos — Brickzon:' in l]
+    assert len(concl_lines) == 1, "Debe existir exactamente una línea de conclusión de Brickzon"
+    concl_line = concl_lines[0]
+    assert 'PENDIENTE' in concl_line, "La conclusión de Brickzon debe indicar que los resultados están pendientes de Colab"
+
+    # Términos metodológicos objetivos
+    for termino in ['128 → 64 → 32', 'Adam', 'MSE', '32', 'SMOTE', 'ADASYN', 'XGBoost']:
+        assert termino in concl_line, f"Falta el término metodológico clave '{termino}' en la descripción de Brickzon"
+
+    # El checklist de Brickzon debe permanecer en [ ] hasta comprobar logs reales en Colab
+    assert '- [ ] **Brickzon:** Autoencoder y los tres clasificadores probados' in src_concl
+    assert '- [x] **Brickzon:** Autoencoder y los tres clasificadores probados' not in src_concl
+
+
+def test_notebook_compatibilidad_celdas_vera_y_busqueda_por_id():
+    """Verifica compatibilidad con adición de celdas (ej. 'cambio-outliers' de Vera) y robustez de IDs."""
+    nb = json.loads(ELEC.read_text(encoding='utf-8'))
+    initial_count = len(nb['cells'])
+
+    # IDs obligatorios de Brickzon
+    target_ids = ['8b8cf438', '45912de6', '0222255d', 'd9c7fffa', 'd9714129']
+    for tid in target_ids:
+        c = celda_por_id(nb, tid)
+        assert c['id'] == tid
+        assert isinstance(c['source'], list)
+
+    # Simular la inserción de la celda de Vera en capítulo 4
+    nb_sim = copy.deepcopy(nb)
+    nueva_celda_vera = {
+        'cell_type': 'code',
+        'execution_count': None,
+        'id': 'cambio-outliers',
+        'metadata': {},
+        'outputs': [],
+        'source': [
+            "# 4.3. Comparación antes y después del tratamiento de outliers (Vera)\n",
+            "print('Outliers tratados')\n"
+        ]
+    }
+    nb_sim['cells'].insert(20, nueva_celda_vera)
+    assert len(nb_sim['cells']) == initial_count + 1
+
+    # Comprobar que todas las celdas se siguen localizando correctamente por ID
+    for tid in target_ids:
+        c_sim = celda_por_id(nb_sim, tid)
+        assert c_sim['id'] == tid
+        assert c_sim['source'] == celda_por_id(nb, tid)['source']
+
+    # Comprobar que una celda no existente genera AssertionError (assert len(matches) == 1)
+    with pytest.raises(AssertionError, match='Se esperaba exactamente 1 coincidencia'):
+        celda_por_id(nb_sim, 'celda_inexistente_12345')
+
+    # Comprobar que una celda duplicada genera AssertionError
+    nb_dup = copy.deepcopy(nb_sim)
+    nb_dup['cells'].append({'id': '45912de6', 'cell_type': 'code', 'source': ['# duplicada']})
+    with pytest.raises(AssertionError, match='Se esperaba exactamente 1 coincidencia'):
+        celda_por_id(nb_dup, '45912de6')
 
 
 # ==============================================================================
@@ -374,13 +456,71 @@ def test_extractor_autoencoder_dimension_guard_and_unfitted_call(brickzon_env):
 
     # Menos de 32 columnas
     X_insuficiente = np.ones((10, 25), dtype=np.float32)
-    with pytest.raises(AssertionError, match='32 días'):
+    with pytest.raises(ValueError, match='32'):
         ae.fit(X_insuficiente)
 
     # transform() sin fit previo
     ae_sin_ajuste = ExtractorAutoencoder()
     with pytest.raises(RuntimeError, match='fit'):
         ae_sin_ajuste.transform(np.ones((10, 40), dtype=np.float32))
+
+
+def test_extractor_autoencoder_fit_invalido_invalida_estado_previo(brickzon_env):
+    """Verifica que un nuevo fit() inválido desajuste el modelo y bloquee transform() con RuntimeError."""
+    ExtractorAutoencoder = brickzon_env['ExtractorAutoencoder']
+    ae = ExtractorAutoencoder(semilla=111, modo='RAPIDO')
+
+    # 1. Ajuste exitoso inicial
+    X_valido = np.random.randn(20, 40).astype(np.float32)
+    ae.fit(X_valido)
+    assert ae._ajustado is True
+    z = ae.transform(X_valido)
+    assert z.shape == (20, 32)
+
+    # 2. Re-fit inválido con menos de 32 columnas
+    X_invalido_col = np.ones((10, 20), dtype=np.float32)
+    with pytest.raises(ValueError, match='32'):
+        ae.fit(X_invalido_col)
+    assert ae._ajustado is False, "Tras un fit() fallido, _ajustado debe ser False"
+    with pytest.raises(RuntimeError, match='fit'):
+        ae.transform(X_valido)
+
+    # 3. Nuevo ajuste exitoso y posterior re-fit inválido con valores no finitos (NaN)
+    ae.fit(X_valido)
+    assert ae._ajustado is True
+    X_invalido_nan = X_valido.copy()
+    X_invalido_nan[2, 3] = np.nan
+    with pytest.raises(ValueError, match='finitos|NaN'):
+        ae.fit(X_invalido_nan)
+    assert ae._ajustado is False
+    with pytest.raises(RuntimeError, match='fit'):
+        ae.transform(X_valido)
+
+    # 4. Nuevo ajuste exitoso y posterior re-fit con matriz no 2D (1D)
+    ae.fit(X_valido)
+    assert ae._ajustado is True
+    with pytest.raises(ValueError, match='2D'):
+        ae.fit(np.ones(50, dtype=np.float32))
+    assert ae._ajustado is False
+    with pytest.raises(RuntimeError, match='fit'):
+        ae.transform(X_valido)
+
+    # 5. Nuevo ajuste exitoso y posterior re-fit con datos no numéricos o None
+    ae.fit(X_valido)
+    assert ae._ajustado is True
+    with pytest.raises(TypeError):
+        ae.fit(None)
+    assert ae._ajustado is False
+    with pytest.raises(RuntimeError, match='fit'):
+        ae.transform(X_valido)
+
+    ae.fit(X_valido)
+    assert ae._ajustado is True
+    with pytest.raises(TypeError):
+        ae.fit([['abc'] * 35] * 5)
+    assert ae._ajustado is False
+    with pytest.raises(RuntimeError, match='fit'):
+        ae.transform(X_valido)
 
 
 def test_progreso_epocas_callback(brickzon_env):
