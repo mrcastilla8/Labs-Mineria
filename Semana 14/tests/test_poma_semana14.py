@@ -18,8 +18,13 @@ ROOT = Path(__file__).resolve().parents[2]
 ELEC = ROOT / 'Semana 14' / 'Laboratorio_Electricidad_Integral.ipynb'
 HYM = ROOT / 'Semana 14' / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
 
-def cell(path, idx):
-    return ''.join(json.loads(path.read_text(encoding='utf-8'))['cells'][idx]['source'])
+def cell(path, selector):
+    cells = json.loads(path.read_text(encoding='utf-8'))['cells']
+    if isinstance(selector, str):
+        matches = [c for c in cells if c.get('id') == selector]
+        assert len(matches) == 1, f'ID de celda ausente o duplicado: {selector}'
+        return ''.join(matches[0]['source'])
+    return ''.join(cells[selector]['source'])
 
 def definitions(source, names, namespace):
     tree = ast.parse(source)
@@ -36,8 +41,8 @@ def electric():
     from sklearn.linear_model import LinearRegression
     ns = {'np': np, 'pd': pd, 'tqdm': tqdm, 'warnings': warnings, 'PchipInterpolator': PchipInterpolator,
           'IterativeImputer': IterativeImputer, 'LinearRegression': LinearRegression}
-    definitions(cell(ELEC, 13), {'validar_calendario_eda','muestrear_matrices_proporcional'}, ns)
-    source = cell(ELEC, 17)
+    definitions(cell(ELEC, '76a25cb9'), {'validar_calendario_eda','muestrear_matrices_proporcional'}, ns)
+    source = cell(ELEC, '702c77ed')
     tree = ast.parse(source)
     nodes = [n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef)) or
              isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'INTERPOLACIONES' for t in n.targets)]
@@ -52,11 +57,11 @@ def hym():
                   'max_graficos_por_metodo': 4}, 'EN_COLAB': False,
           'COLUMNAS_REQUERIDAS': REQUIRED, 'NUMERICAS': NUMERICAS, 'CATEGORICAS': CATEGORICAS}
     ns['etapa'] = lambda _name: contextlib.nullcontext()
-    definitions(cell(HYM, 21), {'localizar_csv', 'cargar_datos'}, ns)
-    definitions(cell(HYM, 24), {'auditar_dataset'}, ns)
-    definitions(cell(HYM, 28), {'preparar_dataset'}, ns)
-    definitions(cell(HYM, 42), {'resumir_cohortes'}, ns)
-    definitions(cell(HYM, 45), {'graficar_eda_cohortes'}, ns)
+    definitions(cell(HYM, 'c857613d'), {'localizar_csv', 'cargar_datos'}, ns)
+    definitions(cell(HYM, '294b5b39'), {'auditar_dataset'}, ns)
+    definitions(cell(HYM, '030b7b5b'), {'preparar_dataset'}, ns)
+    definitions(cell(HYM, '6b702562'), {'resumir_cohortes'}, ns)
+    definitions(cell(HYM, '55f0773d'), {'graficar_eda_cohortes'}, ns)
     return ns
 
 NUMERICAS = ['Year_Birth','Income','Kidhome','Teenhome','MntWines','MntFruits','MntMeatProducts',
@@ -94,7 +99,7 @@ def test_eda_calendar_uses_known_irregular_dates(electric):
         electric['validar_calendario_eda'](fechas[::-1],[0,3,7])
     with pytest.raises(ValueError,match='no coinciden'):
         electric['validar_calendario_eda'](fechas,[0,2,7])
-    eda=cell(ELEC,13); plots=cell(ELEC,14)
+    eda=cell(ELEC,'76a25cb9'); plots=cell(ELEC,'73a62726')
     assert "pd.to_datetime(fechas, format='%Y/%m/%d', errors='raise')" in eda
     assert "'fecha':fechas_calendario" in eda
     assert all(etiqueta in eda for etiqueta in ("('Q1',q1","('Q3',q3","('límite inferior IQR'","('límite superior IQR'"))
