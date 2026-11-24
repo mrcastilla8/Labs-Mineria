@@ -16,7 +16,7 @@ tqdm = lambda iterable, **kwargs: iterable  # barra sustituida en pruebas aislad
 
 ROOT = Path(__file__).resolve().parents[2]
 ELEC = ROOT / 'Semana 14' / 'G2_Lab_Electricidad.ipynb'
-HYM = ROOT / 'Semana 14' / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
+HYM = ROOT / 'Semana 14' / 'G2_Lab_Hym_Data_Drift.ipynb'
 
 def cell(path, selector):
     cells = json.loads(path.read_text(encoding='utf-8'))['cells']
