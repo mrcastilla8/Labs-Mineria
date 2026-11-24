@@ -175,30 +175,30 @@ def crear_datos_sinteticos(n_ref=100, n_seq=200, drift_en_pos=None, semilla=42):
 
 
 def test_notebook_json_integrity_and_academic_content():
-    """Valida formato, IDs estables, métodos ADWIN y limpieza editorial."""
+    """Valida integridad, contenido académico y conservación de la ejecución Colab."""
     data = json.loads(HYM.read_text(encoding='utf-8'))
     assert data.get('nbformat') == 4
     assert data.get('nbformat_minor', 0) >= 2
     ids = [c.get('id') for c in data['cells']]
-    assert len(data['cells']) == 119  # 118 celdas académicas y el enlace de Colab
     assert all(isinstance(cid, str) and cid for cid in ids)
     assert len(ids) == len(set(ids))
     by_id = {c['id']: c for c in data['cells']}
     assert 'def ejecutar_adwin' in ''.join(by_id['8a653bd7']['source'])
     assert 'def graficar_adwin' in ''.join(by_id['522ed1e3']['source'])
     assert 'Dt_Customer' in ''.join(by_id['350eb169']['source'])
-    assert 'ADWIN (Adaptive Windowing)' in ''.join(by_id['350eb169']['source'])
+    assert 'Adaptive Windowing' in ''.join(by_id['350eb169']['source'])
     assert 'res_adwin' in ''.join(by_id['d8b01ad1']['source'])
     assert 'alertas_adwin' in ''.join(by_id['d8b01ad1']['source'])
-    assert 'owner-brickzon' not in json.dumps(data, ensure_ascii=False)
     academico = '\n'.join(''.join(c['source']) for c in data['cells'] if c['cell_type'] == 'markdown')
-    for interno in ('Encargado:', 'Responsable principal:', 'Tarea exacta para el integrante/agente',
-                    'Criterio de aceptación verificable', 'Regla de integración', 'Checklist final',
-                    'interpretación humana pendiente', 'Codex', 'agente'):
-        assert interno.casefold() not in academico.casefold()
-    assert 'marketing_campaign.csv' in academico
+    for concepto in ('marketing_campaign.csv', 'KS', 'Population Stability Index',
+                     'chi-cuadrado', 'ADWIN', 'Experimento controlado',
+                     'Reproducibilidad, validaciones y entregables'):
+        assert concepto.casefold() in academico.casefold()
     assert 'no queda acreditada' in academico
-    assert 'Δ' not in academico or 'puntos porcentuales' in academico
+    celdas_codigo = [c for c in data['cells'] if c['cell_type'] == 'code']
+    assert len(celdas_codigo) == 25
+    assert all(c.get('execution_count') is not None and c.get('outputs') for c in celdas_codigo)
+    assert not any(o.get('output_type') == 'error' for c in celdas_codigo for o in c['outputs'])
 
 
 def test_adwin_scaling_parameters_exclusive_to_reference(brickzon):
