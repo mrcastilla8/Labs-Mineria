@@ -15,7 +15,7 @@ import pytest
 tqdm = lambda iterable, **kwargs: iterable  # barra sustituida en pruebas aisladas
 
 ROOT = Path(__file__).resolve().parents[2]
-ELEC = ROOT / 'Semana 14' / 'Laboratorio_Electricidad_Integral.ipynb'
+ELEC = ROOT / 'Semana 14' / 'G2_Lab_Electricidad.ipynb'
 HYM = ROOT / 'Semana 14' / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
 
 def cell(path, selector):

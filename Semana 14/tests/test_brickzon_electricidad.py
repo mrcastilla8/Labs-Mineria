@@ -27,7 +27,7 @@ from sklearn.metrics import (
 from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[2]
-ELEC = ROOT / 'Semana 14' / 'Laboratorio_Electricidad_Integral.ipynb'
+ELEC = ROOT / 'Semana 14' / 'G2_Lab_Electricidad.ipynb'
 
 
 def celda_por_id(nb_o_path, cell_id):
