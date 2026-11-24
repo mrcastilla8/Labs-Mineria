@@ -15,7 +15,7 @@ from scipy.stats import chi2_contingency
 from tqdm.auto import tqdm
 
 
-NOTEBOOK = Path(__file__).resolve().parents[1] / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
+NOTEBOOK = Path(__file__).resolve().parents[1] / 'G2_Lab_Hym_Data_Drift.ipynb'
 OBJETIVOS = ['Income', 'MntWines', 'Marital_Status']
 
 
