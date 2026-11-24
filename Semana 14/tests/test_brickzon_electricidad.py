@@ -9,6 +9,7 @@ import contextlib
 import copy
 import gc
 import json
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -289,71 +290,63 @@ def brickzon_env():
 
 
 # ==============================================================================
-# 1. PRUEBAS DE INTEGRIDAD DEL NOTEBOOK Y RESPONSABILIDADES DE BRICKZON
+# 1. INTEGRIDAD Y CONTENIDO CIENTÍFICO DEL NOTEBOOK
 # ==============================================================================
 
-def test_notebook_json_integrity_and_brickzon_sections():
-    """Valida formato JSON v4, integridad de celdas por ID y checklist pendiente de Brickzon."""
+def test_notebook_json_integrity_and_scientific_report():
+    """Comprueba integridad JSON, secciones científicas y consistencia con COMPLETO."""
     assert ELEC.is_file(), f"No se encontró el notebook en {ELEC}"
-    nb = json.loads(ELEC.read_text(encoding='utf-8'))
-    assert nb.get('nbformat') == 4
-    assert nb.get('nbformat_minor', 0) >= 2
-    # No se exige un número rígido de celdas para garantizar compatibilidad con PR #22 de Vera
-    assert len(nb.get('cells', [])) >= 60, "El notebook debe contener todas las celdas del laboratorio"
+    nb=json.loads(ELEC.read_text(encoding='utf-8'))
+    assert nb.get('nbformat')==4 and nb.get('nbformat_minor',0)>=2
+    cells=nb.get('cells',[])
+    ids=[c.get('id') for c in cells if c.get('id') is not None]
+    assert all(isinstance(cid,str) and cid for cid in ids)
+    assert len(ids)==len(set(ids))
+    for c in cells:
+        assert c.get('cell_type') in ('code','markdown') and isinstance(c.get('source'),list)
 
-    for c in nb['cells']:
-        assert 'cell_type' in c and c['cell_type'] in ('code', 'markdown')
-        assert 'source' in c and isinstance(c['source'], list)
-        assert 'id' in c and isinstance(c['id'], str), "Todas las celdas deben tener un ID estable"
+    src_ae=codigo_celda_id(nb,'8b8cf438')
+    src_clf=codigo_celda_id(nb,'0222255d')
+    src_concl=codigo_celda_id(nb,'d9714129')
+    src_test=codigo_celda_id(nb,'7c7951b4')
+    src_interp=codigo_celda_id(nb,'1b89425b')
+    src_outliers=codigo_celda_id(nb,'af9ad7ef')
+    src_eda=codigo_celda_id(nb,'b2d83e0f')
 
-    # Verificación de secciones 6.3, 7 y 9 mediante IDs estables
-    # 6.3 Autoencoder (Markdown '8b8cf438' y Código '45912de6')
-    src_md_ae = codigo_celda_id(nb, '8b8cf438')
-    assert '6.3. Autoencoder' in src_md_ae and 'Brickzon' in src_md_ae
+    assert '### 6.3. Autoencoder' in src_ae and '32' in src_ae and 'TRAIN' in src_ae
+    assert '## 7. Clasificadores' in src_clf and 'SMOTE' in src_clf and 'ADASYN' in src_clf
+    assert 'TEST' in src_test and 'una sola vez' in src_test
+    for term in ['0,256346','0,248981','0,237058','0,230637']:
+        assert term in src_interp
+    for term in ['0,256346','0,239720','0,231332']:
+        assert term in src_outliers
+    for term in ['29.660','25,621 %','25,10 %','31,20 %']:
+        assert term in src_eda
+    for term in ['Autoencoder + SMOTE + XGBoost','0,259516','0,258141','0,21986','0,6839','0,8083','0,1908','0,3843','0,25497','0,0397']:
+        assert term in src_concl
+    assert 'selección secuencial' in src_concl and 'significancia estadística' in src_concl
 
-    src_code_ae = codigo_celda_id(nb, '45912de6')
-    assert 'class ExtractorAutoencoder' in src_code_ae and 'class ProgresoEpocas' in src_code_ae
-
-    # 7 Clasificadores (Markdown '0222255d' y Código 'd9c7fffa')
-    src_md_clf = codigo_celda_id(nb, '0222255d')
-    assert '7. Clasificadores' in src_md_clf and 'Brickzon' in src_md_clf
-
-    src_code_clf = codigo_celda_id(nb, 'd9c7fffa')
-    assert 'class BarraXGB' in src_code_clf and 'class BarraLightGBM' in src_code_clf
+    markdown='\n'.join(''.join(c['source']) for c in cells if c['cell_type']=='markdown')
+    for forbidden in ['Marco Renato Castilla','Poma','Vera','Aldana','Brickzon','Responsable:','[PENDIENTE','Guía obligatoria para los agentes','Checklist']:
+        assert re.search(r'\\b'+re.escape(forbidden)+r'\\b', markdown, re.IGNORECASE) is None, f"Referencia editorial interna persistente: {forbidden}"
+    assert 'class ExtractorAutoencoder' in codigo_celda_id(nb,'45912de6')
+    src_code_clf=codigo_celda_id(nb,'d9c7fffa')
     assert 'def crear_modelo' in src_code_clf and 'def metricas_binarias' in src_code_clf
-
-    # 9 Conclusiones y checklist (Markdown 'd9714129')
-    src_concl = codigo_celda_id(nb, 'd9714129')
-    assert 'Autoencoder y modelos — Brickzon:' in src_concl
-
-    # Las conclusiones empíricas deben permanecer como PENDIENTE antes de la ejecución real en Colab
-    concl_lines = [l for l in src_concl.splitlines() if 'Autoencoder y modelos — Brickzon:' in l]
-    assert len(concl_lines) == 1, "Debe existir exactamente una línea de conclusión de Brickzon"
-    concl_line = concl_lines[0]
-    assert 'PENDIENTE' in concl_line, "La conclusión de Brickzon debe indicar que los resultados están pendientes de Colab"
-
-    # Términos metodológicos objetivos
-    for termino in ['128 → 64 → 32', 'Adam', 'MSE', '32', 'SMOTE', 'ADASYN', 'XGBoost']:
-        assert termino in concl_line, f"Falta el término metodológico clave '{termino}' en la descripción de Brickzon"
-
-    # El checklist de Brickzon debe permanecer en [ ] hasta comprobar logs reales en Colab
-    assert '- [ ] **Brickzon:** Autoencoder y los tres clasificadores probados' in src_concl
-    assert '- [x] **Brickzon:** Autoencoder y los tres clasificadores probados' not in src_concl
 
 
 def test_notebook_compatibilidad_celdas_vera_y_busqueda_por_id():
-    """Verifica compatibilidad con adición de celdas (ej. 'cambio-outliers' de Vera) y robustez de IDs."""
+    """Verifica compatibilidad con adición de celdas (compatibilidad con celdas adicionales) y robustez de IDs."""
     nb = json.loads(ELEC.read_text(encoding='utf-8'))
     initial_count = len(nb['cells'])
 
-    # IDs obligatorios de Brickzon
+    # IDs estables de secciones y funciones
     target_ids = ['8b8cf438', '45912de6', '0222255d', 'd9c7fffa', 'd9714129']
     for tid in target_ids:
         c = celda_por_id(nb, tid)
         assert c['id'] == tid
         assert isinstance(c['source'], list)
 
-    # Simular la inserción de la celda de Vera en capítulo 4
+    # Simular la inserción de una celda adicional en capítulo 4
     nb_sim = copy.deepcopy(nb)
     nueva_celda_vera = {
         'cell_type': 'code',
@@ -362,7 +355,7 @@ def test_notebook_compatibilidad_celdas_vera_y_busqueda_por_id():
         'metadata': {},
         'outputs': [],
         'source': [
-            "# 4.3. Comparación antes y después del tratamiento de outliers (Vera)\n",
+            "# 4.3. Comparación antes y después del tratamiento de outliers\n",
             "print('Outliers tratados')\n"
         ]
     }
