@@ -1,4 +1,4 @@
-"""Pruebas unitarias e integración para las secciones de Brickzon (ADWIN y visualización).
+"""Pruebas unitarias e integración para ADWIN y su visualización.
 
 Este archivo valida de forma rigurosa y reproducible:
 - Mocks de contrato, escalado robusto e inmutabilidad estricta.
@@ -7,7 +7,7 @@ Este archivo valida de forma rigurosa y reproducible:
 - Detectores independientes por variable y preservación de índices originales con nulos/inf.
 - Estados de evaluabilidad ('Evaluado', 'Sin referencia suficiente', 'Sin secuencia suficiente').
 - Validación de parámetros de graficar_adwin (ventana > 0, min_periods, infinitos y secuencias vacías).
-- Metadatos e integridad del notebook e interpretación de Brickzon (celdas 75, 78, 81, 82, 117).
+- Integridad académica del notebook y extracción de celdas por ID estable.
 """
 import ast
 import json
@@ -98,9 +98,13 @@ class MockTqdm:
         pass
 
 
-def cell(path, idx):
+def cell(path, selector):
     data = json.loads(path.read_text(encoding='utf-8'))
-    return ''.join(data['cells'][idx]['source'])
+    if isinstance(selector, str):
+        matches = [c for c in data['cells'] if c.get('id') == selector]
+        assert len(matches) == 1, f'ID de celda ausente o duplicado: {selector}'
+        return ''.join(matches[0]['source'])
+    return ''.join(data['cells'][selector]['source'])
 
 
 def definitions(source, names, namespace):
@@ -120,8 +124,8 @@ def brickzon():
         'tqdm': MockTqdm,
         'drift': MockDrift,
     }
-    definitions(cell(HYM, 75), {'ejecutar_adwin'}, ns)
-    definitions(cell(HYM, 78), {'graficar_adwin'}, ns)
+    definitions(cell(HYM, '8a653bd7'), {'ejecutar_adwin'}, ns)
+    definitions(cell(HYM, '522ed1e3'), {'graficar_adwin'}, ns)
     return ns
 
 
@@ -136,8 +140,8 @@ def brickzon_real_river():
         'tqdm': MockTqdm,
         'drift': river_drift,
     }
-    definitions(cell(HYM, 75), {'ejecutar_adwin'}, ns)
-    definitions(cell(HYM, 78), {'graficar_adwin'}, ns)
+    definitions(cell(HYM, '8a653bd7'), {'ejecutar_adwin'}, ns)
+    definitions(cell(HYM, '522ed1e3'), {'graficar_adwin'}, ns)
     return ns
 
 
@@ -170,55 +174,31 @@ def crear_datos_sinteticos(n_ref=100, n_seq=200, drift_en_pos=None, semilla=42):
     return ref, seq
 
 
-def test_notebook_json_integrity_and_brickzon_metadata():
-    """Valida formato v4, total de 118 celdas y metadatos de Brickzon."""
+def test_notebook_json_integrity_and_academic_content():
+    """Valida integridad, contenido académico y conservación de la ejecución Colab."""
     data = json.loads(HYM.read_text(encoding='utf-8'))
-    assert data.get('nbformat') == 4, "El notebook debe ser nbformat v4"
+    assert data.get('nbformat') == 4
     assert data.get('nbformat_minor', 0) >= 2
-    assert len(data['cells']) == 118, f"Se esperaban 118 celdas, se encontraron {len(data['cells'])}"
-
-    # Verificar presencia y etiquetas de celdas clave
-    c75 = data['cells'][75]
-    c78 = data['cells'][78]
-    c81 = data['cells'][81]
-    c82 = data['cells'][82]
-    c117 = data['cells'][117]
-
-    assert c75.get('id') == '8a653bd7'
-    assert c78.get('id') == '522ed1e3'
-    assert c81.get('id') == '350eb169'
-    assert c82.get('id') == 'd8b01ad1'
-    assert c117.get('id') == 'e70c86ce'
-
-    assert 'owner-brickzon' in c75.get('metadata', {}).get('tags', [])
-    assert 'owner-brickzon' in c78.get('metadata', {}).get('tags', [])
-    assert 'owner-brickzon' in c82.get('metadata', {}).get('tags', [])
-    assert 'def ejecutar_adwin' in ''.join(c75['source'])
-    assert 'def graficar_adwin' in ''.join(c78['source'])
-
-    # Verificar interpretación de Brickzon en celda 81
-    txt_81 = ''.join(c81['source'])
-    assert 'Espacio de interpretación de Brickzon:' not in txt_81, "El placeholder debe haber sido reemplazado"
-    assert 'ADWIN (Adaptive Windowing)' in txt_81
-    assert 'Dt_Customer' in txt_81
-    assert 'cohortes de incorporación' in txt_81
-    assert 'Sección 11' in txt_81
-    assert 'retardo de detección' in txt_81.lower() or 'detection latency' in txt_81
-    assert 'ADWIN2' in txt_81
-    # B01 / B03: no afirmar resultados anticipados de datos reales ni de Aldana
-    assert 'ADWIN no detectó cambios en los datos reales' not in txt_81
-    assert 'detectó exitosamente los cambios' not in txt_81
-
-    # Verificar celda de resumen dinámico 82
-    txt_82 = ''.join(c82['source'])
-    assert 'res_adwin' in txt_82
-    assert 'alertas_adwin' in txt_82
-    assert 'Sin referencia suficiente' in txt_82
-    assert 'Sin secuencia suficiente' in txt_82
-
-    # Verificar checklist de entrega en celda 117 (desmarcada según B01)
-    txt_117 = ''.join(c117['source'])
-    assert '- [ ] **Brickzon:** ADWIN procesado en orden establecido; eventos/configuración trazables; límites temporales explicados.' in txt_117
+    ids = [c.get('id') for c in data['cells']]
+    assert all(isinstance(cid, str) and cid for cid in ids)
+    assert len(ids) == len(set(ids))
+    by_id = {c['id']: c for c in data['cells']}
+    assert 'def ejecutar_adwin' in ''.join(by_id['8a653bd7']['source'])
+    assert 'def graficar_adwin' in ''.join(by_id['522ed1e3']['source'])
+    assert 'Dt_Customer' in ''.join(by_id['350eb169']['source'])
+    assert 'Adaptive Windowing' in ''.join(by_id['350eb169']['source'])
+    assert 'res_adwin' in ''.join(by_id['d8b01ad1']['source'])
+    assert 'alertas_adwin' in ''.join(by_id['d8b01ad1']['source'])
+    academico = '\n'.join(''.join(c['source']) for c in data['cells'] if c['cell_type'] == 'markdown')
+    for concepto in ('marketing_campaign.csv', 'KS', 'Population Stability Index',
+                     'chi-cuadrado', 'ADWIN', 'Experimento controlado',
+                     'Reproducibilidad, validaciones y entregables'):
+        assert concepto.casefold() in academico.casefold()
+    assert 'no queda acreditada' in academico
+    celdas_codigo = [c for c in data['cells'] if c['cell_type'] == 'code']
+    assert len(celdas_codigo) == 25
+    assert all(c.get('execution_count') is not None and c.get('outputs') for c in celdas_codigo)
+    assert not any(o.get('output_type') == 'error' for c in celdas_codigo for o in c['outputs'])
 
 
 def test_adwin_scaling_parameters_exclusive_to_reference(brickzon):
@@ -255,7 +235,7 @@ def test_adwin_scaling_parameters_exclusive_to_reference(brickzon):
 
     ns_spy = dict(brickzon)
     ns_spy['drift'] = spy_drift
-    exec(compile(ast.Module(body=[ast.parse(cell(HYM, 75)).body[0]], type_ignores=[]), '<ast>', 'exec'), ns_spy)
+    exec(compile(ast.Module(body=[ast.parse(cell(HYM, '8a653bd7')).body[0]], type_ignores=[]), '<ast>', 'exec'), ns_spy)
     ejecutar_spy = ns_spy['ejecutar_adwin']
 
     # Para V_iqr: mediana_ref = 30.0, q75 = 40.0, q25 = 20.0 -> iqr = 20.0

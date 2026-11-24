@@ -18,16 +18,13 @@ ROOT = Path(__file__).resolve().parents[2]
 ELEC = ROOT / 'Semana 14' / 'Laboratorio_Electricidad_Integral.ipynb'
 HYM = ROOT / 'Semana 14' / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
 
-def cell(path, cell_id):
-    nb=json.loads(path.read_text(encoding='utf-8'))
-    if path == ELEC:
-        matches=[c for c in nb['cells'] if c.get('id')==cell_id]
-        assert len(matches)==1, f"Se esperaba una celda con id={cell_id}; encontradas={len(matches)}"
-        selected=matches[0]
-    else:
-        # HyM conserva sus referencias por índice; este cambio aplica solo a Electricidad.
-        selected=nb['cells'][cell_id]
-    return ''.join(selected['source'])
+def cell(path, selector):
+    cells = json.loads(path.read_text(encoding='utf-8'))['cells']
+    if isinstance(selector, str):
+        matches = [c for c in cells if c.get('id') == selector]
+        assert len(matches) == 1, f'ID de celda ausente o duplicado: {selector}'
+        return ''.join(matches[0]['source'])
+    return ''.join(cells[selector]['source'])
 
 def definitions(source, names, namespace):
     tree = ast.parse(source)
@@ -60,11 +57,11 @@ def hym():
                   'max_graficos_por_metodo': 4}, 'EN_COLAB': False,
           'COLUMNAS_REQUERIDAS': REQUIRED, 'NUMERICAS': NUMERICAS, 'CATEGORICAS': CATEGORICAS}
     ns['etapa'] = lambda _name: contextlib.nullcontext()
-    definitions(cell(HYM, 21), {'localizar_csv', 'cargar_datos'}, ns)
-    definitions(cell(HYM, 24), {'auditar_dataset'}, ns)
-    definitions(cell(HYM, 28), {'preparar_dataset'}, ns)
-    definitions(cell(HYM, 42), {'resumir_cohortes'}, ns)
-    definitions(cell(HYM, 45), {'graficar_eda_cohortes'}, ns)
+    definitions(cell(HYM, 'c857613d'), {'localizar_csv', 'cargar_datos'}, ns)
+    definitions(cell(HYM, '294b5b39'), {'auditar_dataset'}, ns)
+    definitions(cell(HYM, '030b7b5b'), {'preparar_dataset'}, ns)
+    definitions(cell(HYM, '6b702562'), {'resumir_cohortes'}, ns)
+    definitions(cell(HYM, '55f0773d'), {'graficar_eda_cohortes'}, ns)
     return ns
 
 NUMERICAS = ['Year_Birth','Income','Kidhome','Teenhome','MntWines','MntFruits','MntMeatProducts',

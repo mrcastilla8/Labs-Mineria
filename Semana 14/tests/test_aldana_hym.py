@@ -54,7 +54,7 @@ def entorno_hym(celdas_python):
     for cell_id, nombres in (
         ('46fbd911', ('CFG', 'NUMERICAS', 'CATEGORICAS', 'ADWIN_COLS')),
         ('bbb5871f', ('ajustar_bh', 'valores_finitos')),
-        ('fb8c655c', ('contar_categorias', 'calcular_chi', 'probar_chi')),
+        ('fb8c655c', ('contar_categorias', 'calcular_chi', 'probar_chi', 'agrupar_marital', 'resumir_marital_agrupado', 'calcular_chi_marital_agrupado', 'GRUPOS_MARITAL', 'CATEGORIAS_MARITAL_BASE')),
         ('ea8eeb30', ('inyectar_drift', 'probar_inyeccion_drift')),
         ('592938b0', ('resumir_primeras_alertas', 'probar_retraso_adwin')),
     ):
@@ -84,7 +84,7 @@ def test_lectura_de_cohortes_vacias(celdas_python, entorno_hym, capsys, ref_vaci
     salida = capsys.readouterr().out
     assert 'nan%' not in salida.lower()
     assert 'Mayor aumento' not in salida and 'Mayor disminución' not in salida
-    assert len(tablas) == 3
+    assert len(tablas) == 5
     for etiqueta, sufijo, vacia in (('Referencia', 'ref', ref_vacia),
                                     ('Comparación', 'cur', cur_vacia)):
         assert salida.count(f'{etiqueta}: No evaluable: cohorte vacía') == (2 if vacia else 0)
@@ -262,3 +262,22 @@ def test_escenario_controlado_integral(celdas_python, entorno_hym, datos_insufic
         assert controlado.loc[['Income', 'MntWines'], 'alertas_adwin_posteriores'].gt(0).any()
         assert consolidados.loc['MntMeatProducts', 'estado_adwin'] == 'evaluado'
         assert controlado.loc['MntMeatProducts', 'alertas_adwin_posteriores'] == 0
+
+
+def test_marital_status_grouped_complementary_contrast(entorno_hym):
+    agrupar = entorno_hym['agrupar_marital']
+    resumen = entorno_hym['resumir_marital_agrupado']
+    calcular = entorno_hym['calcular_chi_marital_agrupado']
+    ref = pd.DataFrame({'Marital_Status': ['Married', 'Together', 'Single', 'Divorced', 'Absurd', None] * 20})
+    cur = pd.DataFrame({'Marital_Status': ['Married'] * 60 + ['Together'] * 20 + ['Single'] * 10 + ['Divorced'] * 10 + ['YOLO'] * 10})
+    assert set(agrupar(ref.Marital_Status)) <= {'Married', 'Together', 'Single', 'Divorced', 'Otros'}
+    tabla = resumen(ref, cur)
+    assert tabla.index.tolist() == ['Married', 'Together', 'Single', 'Divorced', 'Otros']
+    assert tabla.loc['Otros', 'n_ref'] == 40  # 20 categorías raras y 20 valores faltantes
+    assert tabla.loc['Otros', 'n_cur'] == 10
+    base = pd.DataFrame({'variable': ['Education', 'Marital_Status'], 'p_valor': [0.01, np.nan]})
+    salida = calcular(ref, cur, base, alpha=0.05).iloc[0]
+    assert salida['variante'] == 'categorias_agrupadas'
+    assert salida['grupos'] == 'Married|Together|Single|Divorced|Otros'
+    assert salida['supuestos_ok']
+    assert np.isfinite(salida['chi2']) and np.isfinite(salida['p_ajustado'])
