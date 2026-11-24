@@ -23,7 +23,7 @@ import river
 from river import drift as river_drift
 
 ROOT = Path(__file__).resolve().parents[2]
-HYM = ROOT / 'Semana 14' / 'Plantilla_HyM_Data_Drift_Colab_Agent_Oriented.ipynb'
+HYM = ROOT / 'Semana 14' / 'G2_Lab_Hym_Data_Drift.ipynb'
 
 
 class MockADWIN:
